@@ -4,7 +4,7 @@
 using namespace std;
 
 string encryptDecrypt(string toEncrypt) {
-    char key[10] = {'A', 'M', 'B', 'N','O','F','E','A','E','E'}; //Any chars will work, in an array of any size
+    char key[10] = ##KEYC##; //Any chars will work, in an array of any size
     string output = toEncrypt;
 
     for (int i = 0; i < toEncrypt.size(); i++)
