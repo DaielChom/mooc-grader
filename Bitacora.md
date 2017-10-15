@@ -26,7 +26,7 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 * ~~Crear un repositorio con nombre `mooc-grader` y alli alojar todo lo que estoy haciendo. creo que lo ideal seria usar ramas, aunque aun debo aprender a usarlas XD.~~
 * ~~Hacer que me pueda devovler~~
 * ~~Probar que el deadline funciona~~
-* Probar el scrypt to_student
+* ~~Probar el scrypt to_student~~
 * Hacer que el archivo `template` y si se puede el `RLXMOOC CONFIGS` se generen automaticamente.
 * Añadir los notebooks `FIXCHARING` y `COMPUTEGRADER`
 
@@ -34,3 +34,5 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 * El respositorio se encuentra en DaielChom/mooc-grader
 * Ya sirve, si uno se equivoca en poner los parametros ya sirve volver a escribir los paramestro y corregir los archivos de configuracion
 * Pues al parecer no funciona
+* Listo, el script funciona
+* 

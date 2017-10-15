@@ -5,7 +5,6 @@ from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
 
-template_id = "1Dy5ITWjvtvSO4brkINoOlwxPW3rE7UvCz_iwxpbSUec"
 course_id   = "2017BG"
 
 def encryptDecrypt(input):
@@ -53,25 +52,23 @@ def google_drive_remove_files(service, fname):
         print "removing", i["name"], i["id"] 
         service.files().delete(fileId=i["id"]).execute()
         
-def google_drive_create_file_from_template(service, fname, template_id, user_ro_access):
-    origin_fileid=template_id
-    copied_file = {'title': fname, 'name': fname}
-
-    f = service.files().copy(fileId=origin_fileid, body=copied_file).execute()
-    rlxmooc_permision = {
-        'type': 'user',
-        'role': 'writer',
-        'emailAddress': 'pruebadaielchom@gmail.com'
-    }
-
-    user_permision = {
-        'type': 'user',
-        'role': 'reader',
-        'emailAddress': user_ro_access
-    }
-
-    service.permissions().create(fileId = f["id"], body=rlxmooc_permision, fields="id").execute()
-    service.permissions().create(fileId = f["id"], body=user_permision, fields="id").execute()
+def google_drive_create_file(gc, fname, email):
+    
+    ### AQUI CREAR Template ###
+    template = gc.create(fname)
+    template.add_worksheet('submissions', 100, 100)
+    template.add_worksheet('summary',100,100)
+    template.get_worksheet(0).update_acell('A1', "SUBMISSION DATE")
+    template.get_worksheet(0).update_acell('B1', "PROBLEM NUMBER")
+    template.get_worksheet(0).update_acell('C1', "RESULT")
+    template.get_worksheet(0).update_acell('D1', "REMARKS")
+    template.get_worksheet(0).update_acell('E1', "CODE")
+    template.share('pruebaDaielChom@gmail.com', perm_type='user', role='writer')
+    template.share(email, perm_type='user', role='reader')
+          
+       ### ===================== ###
+        
+    
 
 
 def check_solution (pid, src):
@@ -176,11 +173,12 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    app_email, gc, service = get_RLXMOOC_credentials()
 
    fname = course_id+'-'+email
-
+ 
    if not google_drive_file_exists(service, fname):
-      google_drive_create_file_from_template(service, fname, template_id, email)
-      print "your personal submissions sheet for",course_id,"was created, check your email"
-      sys.stdout.flush()
+                     
+        google_drive_create_file(gc, fname, email)
+        print "your personal submissions sheet for",course_id,"was created, check your email"
+        sys.stdout.flush()
       
    hard_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "harddeadline")
    soft_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "softdeadline")
