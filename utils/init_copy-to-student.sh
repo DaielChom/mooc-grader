@@ -1,5 +1,5 @@
 
-export STUDENTDIR="./student/2017BG"
+export STUDENTDIR="./student/##COUSERNAME##"
 echo "Using student dir at $STUDENTDIR"
 rm -rf $STUDENTDIR/utils
 ## NO COPIAR LA CARPERTA DE img_conf

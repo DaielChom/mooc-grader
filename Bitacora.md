@@ -23,9 +23,14 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 "Recorte la foto esperar que reaccion tiene seria bueno que todo sea bien, pero no se". Tuve varios problemas, entre ellos la quota que se me acabo, RLXCONFS al no estar generaba errores, entre otros, ya quedaron corregidos para la presente reunion y una prueba exitosa de un grader. le explique eso a raul y ya quedo, obviamente voy un tris atrasado y ma dejo mas tareas AH!!, y por sobre todo debo subir esa miercoles a github XD jajajaj. me dio flojera hacerlo y debi de hacerlo hace rato, esa sera mi prioridad. Tambien me mostro un nuevo par de notebooks para agregar a las intrucciones que consistian en las configuraciones de los deadline y el otro para solucionar el problema que aveces no comparte un archivo drive. Entonces las tareas que se me asignaron quedan de la siguiente manera.
 
 ##### Tareas.
-* Crear un repositorio con nombre `mooc-grader` y alli alojar todo lo que estoy haciendo. creo que lo ideal seria usar ramas, aunque aun debo aprender a usarlas XD.
+* ~~Crear un repositorio con nombre `mooc-grader` y alli alojar todo lo que estoy haciendo. creo que lo ideal seria usar ramas, aunque aun debo aprender a usarlas XD.~~
 * ~~Hacer que me pueda devovler~~
-* Pribar que el deadline funciona
+* ~~Probar que el deadline funciona~~
 * Probar el scrypt to_student
 * Hacer que el archivo `template` y si se puede el `RLXMOOC CONFIGS` se generen automaticamente.
 * Añadir los notebooks `FIXCHARING` y `COMPUTEGRADER`
+
+#### Desarollo
+* El respositorio se encuentra en DaielChom/mooc-grader
+* Ya sirve, si uno se equivoca en poner los parametros ya sirve volver a escribir los paramestro y corregir los archivos de configuracion
+* Pues al parecer no funciona
