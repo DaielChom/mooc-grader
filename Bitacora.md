@@ -27,12 +27,18 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 * ~~Hacer que me pueda devovler~~
 * ~~Probar que el deadline funciona~~
 * ~~Probar el scrypt to_student~~
-* Hacer que el archivo `template` y si se puede el `RLXMOOC CONFIGS` se generen automaticamente.
+* ~~Hacer que el archivo `template` y si se puede el `RLXMOOC CONFIGS` se generen automaticamente.~~
 * Añadir los notebooks `FIXCHARING` y `COMPUTEGRADER`
 
 #### Desarollo
 * El respositorio se encuentra en DaielChom/mooc-grader
 * Ya sirve, si uno se equivoca en poner los parametros ya sirve volver a escribir los paramestro y corregir los archivos de configuracion
-* Pues al parecer no funciona
+* Pues al parecer no funciona, mentira si funciona hay que configurar bien el formato que viene siendo
+> course_id+"::"+problem_set_id+"::"+configvar
+> 2017BG::QZ1::harddeadline	2016/01/24 22:20:15 [-0500]
+2017BG::QZ1::softdeadline	2016/01/23 21:10:15 [-0500]
+
+* Bujajajjajja el deadline funciona y lo hace automaticamente
+
 * Listo, el script funciona
-* 
+*

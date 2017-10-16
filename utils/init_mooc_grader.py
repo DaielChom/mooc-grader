@@ -49,11 +49,11 @@ def google_drive_remove_files(service, fname):
     results = service.files().list(q='name="'+fname+'"').execute()
     items = results.get('files',[])
     for i in items:
-        print "removing", i["name"], i["id"] 
+        print "removing", i["name"], i["id"]
         service.files().delete(fileId=i["id"]).execute()
-        
+
 def google_drive_create_file(gc, fname, email):
-    
+
     template = gc.create(fname)
     template.add_worksheet('submissions', 100, 100)
     template.add_worksheet('summary',100,100)
@@ -87,8 +87,8 @@ def check_solution (pid, src):
        r = "EXECUTION ERROR"
 
    return r
-   
-   
+
+
 fmt_tz   = "%Y/%m/%d %H:%M:%S [%z]"
 fmt_notz = "%Y/%m/%d %H:%M:%S"
 
@@ -97,7 +97,7 @@ def get_localized_inet_time():
     response = c.request('0.europe.pool.ntp.org', version=3)
     nowloc = datetime.datetime.fromtimestamp(response.tx_time)
 
-    lnowloc = tzlocal.get_localzone().localize(nowloc)    
+    lnowloc = tzlocal.get_localzone().localize(nowloc)
     return lnowloc
 
 def datetime2str(t):
@@ -111,7 +111,7 @@ def str2datetime(s):
 
     d1 = datetime.datetime.strptime(mdate, fmt_notz)
     d1 = pytz.FixedOffset(offset).localize(d1)
-    return d1   
+    return d1
 
 
 def get_config(gc, course_id, problem_set_id, configvar, debug=False):
@@ -119,7 +119,7 @@ def get_config(gc, course_id, problem_set_id, configvar, debug=False):
         name = course_id+"::"+problem_set_id+"::"+configvar
         if debug:
             print "looking for", name
-        w = gc.open("RLXMOOC CONFIGS").worksheet("config")
+        w = gc.open("MOOCGRADER CONFIGS").worksheet("config")
         c = w.find(name)
         v = w.cell(c.row, c.col+1).value
         return v
@@ -153,15 +153,15 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    src = urllib.unquote_plus(sys.argv[3])
    problemset_id = pid.split("_")[0]
 
-   print "connecting ...", 
+   print "connecting ...",
    sys.stdout.flush()
-       
+
    is_authorized, email = check_user_auth()
 
    if not is_authorized:
       print "user not authenticated, please run the first cell of this notebook to authenticate"
       sys.exit(0)
- 
+
    print "registering submission for", email,"..."
    sys.stdout.flush()
 
@@ -173,7 +173,7 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
       google_drive_create_file(gc, fname, email)
       print "your personal submissions sheet for",course_id,"was created, check your email"
       sys.stdout.flush()
-      
+
    hard_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "harddeadline")
    soft_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "softdeadline")
 

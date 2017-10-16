@@ -122,9 +122,10 @@ def str2datetime(s):
 def get_config(gc, course_id, problem_set_id, configvar, debug=False):
     try:
         name = course_id+"::"+problem_set_id+"::"+configvar
+       
         if debug:
             print "looking for", name
-        w = gc.open("RLXMOOC CONFIGS").worksheet("config")
+        w = gc.open("MOOCGRADER CONFIGS").worksheet("config")
         c = w.find(name)
         v = w.cell(c.row, c.col+1).value
         return v
@@ -135,8 +136,11 @@ def get_config(gc, course_id, problem_set_id, configvar, debug=False):
         return None
 
 def check_deadline_expired(gc, course_id, problemset_id, deadline_id="harddeadline"):
+    
     now = get_localized_inet_time()
+    
     deadline_str = get_config(gc, course_id, problemset_id, deadline_id)
+
     if deadline_str is None:
         return False
     deadline = str2datetime(deadline_str)
@@ -145,7 +149,33 @@ def check_deadline_expired(gc, course_id, problemset_id, deadline_id="harddeadli
 
 if len(sys.argv)<2:
     sys.exit(0)
-
+    
+if sys.argv[1]=="CREATE_MOOCGRADER":
+    
+    print "Conecting.."
+    app_email, gc, service = get_RLXMOOC_credentials()
+    template = gc.create("MOOCGRADER CONFIGS")
+    print "Creating moocgrader"
+    template.add_worksheet('config', 1, 1)
+    print "Creating worksheet config"
+    template.share('pruebaDaielChom@gmail.com', perm_type='user', role='writer')
+    print "Sharing moocgrader"
+    print "OK"
+    
+if sys.argv[1]=="ADD_DEADLINE":
+    hl = sys.argv[2]
+    sl = sys.argv[3]
+    print hl.split("#")
+    print sl.split("#")
+    print "Conecting.."
+    app_email, gc, service = get_RLXMOOC_credentials()
+    print "Geting worksheet config"
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    print "Adding deadline"
+    config. append_row([hl.split("#")[0],hl.split("#")[1].replace("_"," ")])
+    config. append_row([sl.split("#")[0],sl.split("#")[1].replace("_"," ")])
+    print "OK"
+    
 if sys.argv[1]=="CHECK_SOLUTION":
    pid = sys.argv[2]
    src = urllib.unquote_plus(sys.argv[3])
@@ -174,8 +204,7 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
 
    fname = course_id+'-'+email
  
-   if not google_drive_file_exists(service, fname):
-                     
+   if not google_drive_file_exists(service, fname):                     
         google_drive_create_file(gc, fname, email)
         print "your personal submissions sheet for",course_id,"was created, check your email"
         sys.stdout.flush()
@@ -183,6 +212,8 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    hard_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "harddeadline")
    soft_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "softdeadline")
 
+
+    
    gf = gc.open(fname)
 
    wks = gf.worksheet("submissions")
@@ -197,12 +228,14 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    wks.update_cell(i+1,2,pid)
    wks.update_cell(i+1,3,result)
    wks.update_cell(i+1,5,src)
+    
    if hard_deadline_expired:
        wks.update_cell(i+1,4, "HARD DEADLINE EXPIRED")
        print "SUBMITTED AFTER HARD DEADLINE"
    elif soft_deadline_expired:
        wks.update_cell(i+1,4, "DEADLINE EXPIRED")
        print "SUBMITTED AFTER DEADLINE"
+    
    print "your submissions sheet is https://docs.google.com/spreadsheets/d/"+gf.id
    print "----"
    print "evaluation result", result, ", submission registered"
