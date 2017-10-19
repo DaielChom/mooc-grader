@@ -2,6 +2,8 @@
 # Grader funcion creada por el profesor, no se muestra al estudiante.
 def grade():
     
+    grade = 5
+    
     # Funcion correcta
     def adivina_respuesta():
         return "Daniel"
@@ -11,6 +13,7 @@ def grade():
     
     if adivina() != adivina_respuesta():
         print("Intenta nuevamente")
-        return False
+        grade = 0
+        return grade
     
-    return True
+    return grade

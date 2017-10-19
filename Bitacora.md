@@ -49,6 +49,6 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 #### Tareas.
 * ~~Arreglar lo de la estructura del curso.~~
 * ~~Asociar Deadlines~~
-* Limpiar
+* ~~Limpiar~~
 * Grader funcione con notas, crear parametros para una nota maxima y una nota minima.
 * Grader funcione independientmeente del lenguaje. DUDA: con el grader
