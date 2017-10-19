@@ -41,4 +41,14 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 * Bujajajjajja el deadline funciona y lo hace automaticamente
 
 * Listo, el script funciona
-*
+
+
+#### Reunión 17 - oct- 2017
+"MERISII!! El jueves pero no puedo ir, creo que ire igualmente; Pedaleo intenso con la aux y lo mas reciente pero lo mismo de siempre mi hermana es un fastidio. De las tareas que se propusieron se hicieron la mayoria, pero lo que hay es cosas por hacer y bastantes, la reunion no se llevo en la oficina del profe si no durante la clase de bigdata pues el lunes fue festivo y pues ni modo. Listo de las tareas que se realizaron no hubo problema con ninguna tan solo con la del diccionario del curso, es mejor que el profesor la llene el mismo sin lo del for, hay que arreglar eso, dos la duda principal era lo de los deadline, ya me dijo el profesor que las asociara, entonces hago estos dos arreglos y limpio, por que se necesita una limpiada, una vez limpia recreo el curso y hago el siguiente arreglo que es hacer que el grader sirva con notas de 1 a 5 no con CORRECT y NO CORRECT. Una vez echo este cambio una nueva limpieza y a seguir con la otra tarea que esa si la veo complicada y es hacer las intrucciones de creacion de quices y un "grader" que sirva independientmeente del lengujae en el que se hagan los quices, algo complicado pero con el subprocess deberia funcionar, la idea es que el subprocess aparesca en el rlxmooc, que llame al grader y este y que lea la respuesta independientmeente de lo que haga el grader al rlxmooc solo le importa el archivo que escriba el grader con la nota. AH TRABAJR.
+
+#### Tareas.
+* ~~Arreglar lo de la estructura del curso.~~
+* ~~Asociar Deadlines~~
+* Limpiar
+* Grader funcione con notas, crear parametros para una nota maxima y una nota minima.
+* Grader funcione independientmeente del lenguaje. DUDA: con el grader

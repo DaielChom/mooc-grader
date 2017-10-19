@@ -394,18 +394,14 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     print "OK"
 
 if sys.argv[1]=="ADD_DEADLINE":
+    
     hl = sys.argv[2]
-    sl = sys.argv[3]
-    print hl.split("#")
-    print sl.split("#")
-    print "Conecting.."
-    app_email, gc, service = get_RLXMOOC_credentials()
-    print "Geting worksheet config"
-    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
-    print "Adding deadline"
-    config. append_row([hl.split("#")[0],hl.split("#")[1].replace("_"," ")])
-    config. append_row([sl.split("#")[0],sl.split("#")[1].replace("_"," ")])
-    print "OK"
+    sl = sys.argv[3]    
+    
+    app_email, gc, service = get_RLXMOOC_credentials()    
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")    
+    config. append_row([hl,sl.replace("_"," ")])    
+    print "OK deadline"
 
 if sys.argv[1]=="CHECK_SOLUTION":
    pid = sys.argv[2]
