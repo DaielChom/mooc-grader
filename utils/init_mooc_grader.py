@@ -1,6 +1,7 @@
 
 import sys, urllib, re, datetime, ntplib, pytz, tzlocal, traceback, httplib2, gspread
 import numpy as np
+import pandas as pd
 from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -65,6 +66,10 @@ def google_drive_create_file(gc, fname, email):
     template.share('##EMAIL##', perm_type='user', role='writer')
     template.share(email, perm_type='user', role='reader')
 
+def google_drive_create_file_grade_final(gc, sname):
+    grade = gc.create(sname)
+    grade.add_worksheet('grades', 100, 100)
+    grade.share('##EMAIL##', perm_type='user', role='writer')
 
 def check_solution (pid, src):
 
@@ -113,7 +118,6 @@ def str2datetime(s):
     d1 = pytz.FixedOffset(offset).localize(d1)
     return d1
 
-
 def get_config(gc, course_id, problem_set_id, configvar, debug=False):
     try:
         name = course_id+"::"+problem_set_id+"::"+configvar
@@ -138,8 +142,248 @@ def check_deadline_expired(gc, course_id, problemset_id, deadline_id="harddeadli
     diff = deadline-now
     return diff.total_seconds()<0
 
+def retrieve_all_files(service):
+    try:
+        param = {}
+        files = service.files().list(**param).execute()
+        return files
+    except errors.HttpError, error:
+        print 'An error occurred: %s' % error
+
+def clear_worksheet_range(wks, cell_range):
+    cell_list = wks.range(cell_range)
+    for cell in cell_list:
+        cell.value=""
+    wks.update_cells(cell_list)
+
+def get_course_sheets(course, service=None):
+    if service is None:
+        app_email, gc, service = get_RLXMOOC_credentials()
+    files = retrieve_all_files(service)
+    sheet_names = [f["name"] for f in files["files"] if f["name"].startswith(course["name"])]
+    return sheet_names
+
+def get_coursepart_grades(pdefs, submissions_df):
+    r = pd.DataFrame([], columns=submissions_df.columns)
+
+    for pset in pdefs.keys():
+        for pid in pdefs[pset]["problems"]:
+            dfp = submissions_df[ (submissions_df.problem_id==pid) & (submissions_df.result.str.startswith("CORRECT"))].copy()
+            if len(dfp)==0:
+               continue
+            # sets grades. if result is just "CORRECT" sets it to the max grade
+            # else if result is "CORRECT n", sets it n or max_grade if n>max_grade
+            pgrades = []
+            for _,item in dfp.iterrows():
+                spl = item.result.split(" ")
+                if len(spl)==1:
+                    pgrades.append(pdefs[pset]["maxgrade"])
+                else:
+                    pgrades.append(np.min([float(spl[1]), pdefs[pset]["maxgrade"]]))
+
+            # reduces grades according to penalties and deadlines
+            dfp["grade"] = pgrades
+            maxgrade = pdefs[pset]["maxgrade"]
+            for strdate in pdefs[pset]["deadlines"]:
+                date = str2datetime(strdate)
+                penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
+                dname   =  pdefs[pset]["deadlines"][strdate]["name"]
+
+                dfp.grade = [np.min([item.grade, maxgrade*(1.-penalty)]) if item.date>date else item.grade for i,item in dfp.iterrows()]
+                dfp.comment = ["LATE "+dname+" "+strdate if item.grade == maxgrade*(1.-penalty)  else item.comment for i,item in dfp.iterrows()]
+            if len(dfp.grade)>0:
+                # hack due to a bug in pandas having problems with append and time_zoned dates
+                dfp["date"] = np.zeros(len(dfp))
+                r = r.append(dfp.loc[np.argmax(dfp.grade)], ignore_index=True)
+            else:
+                r = r.append(pd.DataFrame([[date, pid, "NOT SUBMITTED", 0, ""]], columns=submissions_df.columns).iloc[0])
+    return r
+
+def get_submissions(sheet_name, gc):
+    if gc is None:
+        app_email, gc, service = get_RLXMOOC_credentials()
+
+    gf         = gc.open(sheet_name)
+    wks        = gf.worksheet("submissions")
+    dates      = wks.col_values(1)
+    ids        = wks.col_values(2)
+    result     = wks.col_values(3)
+
+    dates = [i for i in dates if i!='' and i!="SUBMISSION DATE"]
+    ids = [i for i in ids if i!='' and i!="PROBLEM NUMBER"]
+    result = [i for i in result if i!='' and i!="RESULT"]
+
+    df = pd.DataFrame([[dates[i], ids[i], result[i]] for i in range(len(dates))], columns=["date", "problem_id", "result"])
+    df.date = [str2datetime(i) for i in df.date]
+    df = df.dropna()
+    df = df[ (df.problem_id!="") & (df.result!="")]
+    df["grade"] = np.zeros(len(df))
+    df["comment"] = [""] * len(df)
+    return df
+
+def get_coursepart_summary(pdefs, grades):
+    r = []
+    for pset in pdefs.keys():
+        pids = pdefs[pset]["problems"]
+        psetgrades = []
+        for pid in pids:
+            pgrade = grades[grades.problem_id==pid].grade
+            pgrade = pgrade.iloc[0] if len(pgrade)>0 else 0
+            psetgrades.append(pgrade)
+        r.append([pset, np.mean(psetgrades)])
+    r.append(["TOTAL", np.mean([i[1] for i in r])])
+    return pd.DataFrame(r, columns=["problemset", "grade"]).sort_values(by=["problemset"])
+
+def find_cell(cell_list, row, col):
+    for cell in cell_list:
+        if cell.row == row and cell.col==col:
+            return cell
+    return None
+
+def dataframe_to_gsheet(wks, df, title, start_row, start_col):
+    nrows     = len(df)+2
+    ncols     = len(df.columns)
+
+    start_col_letter = chr(64+start_col)
+    end_col_letter   = chr(64+start_col+ncols)
+    end_row          = start_row+nrows
+
+    cell_range = start_col_letter+str(start_row)+":"+end_col_letter+str(end_row)
+    cell_list = wks.range(cell_range)
+
+    find_cell(cell_list,start_row,start_col).value=title
+    for i,col in enumerate(df.columns):
+        find_cell(cell_list,start_row+1,start_col+i).value=col
+
+    for i,(idx, item) in enumerate(df.iterrows()):
+        for j, col in enumerate(df.columns):
+            find_cell(cell_list, start_row+i+2,start_col+j).value=item[col]
+
+    wks.update_cells(cell_list)
+
+def compute_grades(course, sheet_name, gc=None):
+    if gc is None:
+        app_email, gc, service = get_RLXMOOC_credentials()
+
+    print "Processing", sheet_name,
+
+    submissions = get_submissions(sheet_name, gc)
+    gf = gc.open(sheet_name)
+    wks = gf.worksheet("summary")
+    clear_worksheet_range(wks, "A1:Z100")
+
+    start_row = 5
+    cols = ["sheet_name"]
+    vals = [sheet_name]
+    course_total = 0.0
+    for k in sorted(course.keys()):
+        if k=="name":
+            continue
+        course_part = course[k]
+        grades  = get_coursepart_grades(course_part["defs"], submissions)
+        summary = get_coursepart_summary(course_part["defs"], grades)
+
+        # save detail and summary in student sheet
+        dataframe_to_gsheet(wks, grades, k, start_row=start_row, start_col=1)
+        dataframe_to_gsheet(wks, summary, k+" SUMMARY", start_row=start_row, start_col=8)
+        start_row += len(grades)+4
+
+        # remove total and recalculate it
+        summary = summary[summary.problemset!="TOTAL"]
+
+        cols += list(summary.problemset)+ [k+"_TOTAL"]
+        vals += list(summary.grade)+[np.mean(summary.grade)]
+       # cols += [k]
+       # vals += [np.mean(summary.grade)]
+        course_total += np.mean(summary.grade)*course[k]["weight"]
+    cols += ["TOTAL"]
+    vals += [course_total]
+    grades_summary = pd.DataFrame([vals], columns=cols)
+    grades_summary_for_student = grades_summary[[col for col in grades_summary.columns if "TOTAL" in col]]
+    dataframe_to_gsheet(wks, grades_summary_for_student, "COURSE SUMMARY", start_row=1, start_col=1)
+
+    return grades_summary
+
+def save_class_grades(course, class_grades, gc=None):
+    if gc is None:
+        app_email, gc, service = get_RLXMOOC_credentials()
+
+    sname=course["name"]+"-grades"
+
+    if not google_drive_file_exists(service, sname):
+         google_drive_create_file_grade_final(gc, sname)
+         print "The grade sheet for",course_id,"was created, check your email"
+         sys.stdout.flush()
+
+def compute_all_grades(course):
+    app_email, gc, service = get_RLXMOOC_credentials()
+    sheet_names = get_course_sheets(course, service)
+
+    class_grades = None
+    for sheet_name in sheet_names:
+        if sheet_name==course["name"]+"-grades":
+            continue
+
+        grades_summary = compute_grades(course, sheet_name, gc)
+
+        if class_grades is None:
+            class_grades = pd.DataFrame([], columns = grades_summary.columns)
+        class_grades.loc[len(class_grades)] = grades_summary.iloc[0]
+
+    return class_grades
+
+def fix_sharing():
+    print "Course is", course_id
+    app_email, gc, service = get_RLXMOOC_credentials()
+    files = retrieve_all_files(service)
+    sheets = [f for f in files["files"] if f["name"].startswith(course_id)]
+
+    rlxmooc_permision = {
+        'type': 'user',
+        'role': 'writer',
+        'emailAddress': '##EMAIL##'
+    }
+
+    for s in sheets:
+        if s["name"].startswith(course_id):
+            # user mail is in sheet name
+            usermail = s["name"][len(course_id)+1:]
+
+            user_permision = {
+                'type': 'user',
+                'role': 'reader',
+                'emailAddress': usermail
+            }
+
+            # sets permissions
+            service.permissions().create(fileId = s["id"], body=rlxmooc_permision, fields="id").execute()
+            service.permissions().create(fileId = s["id"], body=user_permision, fields="id").execute()
+            print "permissions set", usermail
+
 if len(sys.argv)<2:
     sys.exit(0)
+
+if sys.argv[1]=="CREATE_MOOCGRADER":
+
+    print "Conecting.."
+    app_email, gc, service = get_RLXMOOC_credentials()
+    template = gc.create("MOOCGRADER CONFIGS")
+    print "Creating moocgrader"
+    template.add_worksheet('config', 1, 1)
+    print "Creating worksheet config"
+    template.share('##EMAIL##', perm_type='user', role='writer')
+    print "Sharing moocgrader"
+    print "OK"
+
+if sys.argv[1]=="ADD_DEADLINE":
+
+    hl = sys.argv[2]
+    sl = sys.argv[3]
+
+    app_email, gc, service = get_RLXMOOC_credentials()
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    config. append_row([hl,sl.replace("_"," ")])
+    print "OK deadline"
 
 if sys.argv[1]=="CHECK_SOLUTION":
    pid = sys.argv[2]

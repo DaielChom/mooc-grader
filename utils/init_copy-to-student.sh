@@ -12,4 +12,4 @@ cp ./utils/runepy $STUDENTDIR/utils
 cp ./utils/client_secrets.json $STUDENTDIR/utils
 cp ./run ./mooclib.py $STUDENTDIR
 rm $STUDENTDIR/utils/init_mooc_grader.epy
-rm $STUDENTDIR/mooc-grader-instructions.ipynb
+rm $STUDENTDIR/instructions.ipynb
