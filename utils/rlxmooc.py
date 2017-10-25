@@ -86,7 +86,7 @@ def check_solution (pid, src):
 
    # call grader code
    try:
-       r = "CORRECT" if eval("grade()") else "NOT CORRECT"
+       r = eval("grade()")
    except Exception as e:
        traceback.print_exc()
        r = "EXECUTION ERROR"
@@ -166,37 +166,44 @@ def get_course_sheets(course, service=None):
 def get_coursepart_grades(pdefs, submissions_df):
     r = pd.DataFrame([], columns=submissions_df.columns)
 
+
     for pset in pdefs.keys():
         for pid in pdefs[pset]["problems"]:
-            dfp = submissions_df[ (submissions_df.problem_id==pid) & (submissions_df.result.str.startswith("CORRECT"))].copy()
-            if len(dfp)==0:
-               continue
-            # sets grades. if result is just "CORRECT" sets it to the max grade
-            # else if result is "CORRECT n", sets it n or max_grade if n>max_grade
-            pgrades = []
-            for _,item in dfp.iterrows():
-                spl = item.result.split(" ")
-                if len(spl)==1:
-                    pgrades.append(pdefs[pset]["maxgrade"])
-                else:
-                    pgrades.append(np.min([float(spl[1]), pdefs[pset]["maxgrade"]]))
 
-            # reduces grades according to penalties and deadlines
-            dfp["grade"] = pgrades
-            maxgrade = pdefs[pset]["maxgrade"]
-            for strdate in pdefs[pset]["deadlines"]:
-                date = str2datetime(strdate)
-                penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
-                dname   =  pdefs[pset]["deadlines"][strdate]["name"]
+            dfp = submissions_df[submissions_df.problem_id==pid]
 
-                dfp.grade = [np.min([item.grade, maxgrade*(1.-penalty)]) if item.date>date else item.grade for i,item in dfp.iterrows()]
-                dfp.comment = ["LATE "+dname+" "+strdate if item.grade == maxgrade*(1.-penalty)  else item.comment for i,item in dfp.iterrows()]
-            if len(dfp.grade)>0:
-                # hack due to a bug in pandas having problems with append and time_zoned dates
-                dfp["date"] = np.zeros(len(dfp))
-                r = r.append(dfp.loc[np.argmax(dfp.grade)], ignore_index=True)
+            # Problem Submit
+            if len(dfp)>0:
+                dfpmax = dfp[dfp['result']==dfp['result'].max()]
+                print dfpmax
+                if len(dfpmax)>1:
+                    dfpmax = dfpmax.drop(labels=[1], axis=0)
+
+                dfpgrade = dfpmax['result'].copy()
+
+                for strdate in pdefs[pset]["deadlines"]:
+                    date = str2datetime(strdate)
+                    penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
+                    dname   =  pdefs[pset]["deadlines"][strdate]["name"]
+
+                    if dfpmax['date'][0] > date:
+                        grade_penalty = float(dfpgrade.get_value(dfpgrade.index[0]))-float(dfpgrade.get_value(dfpgrade.index[0]))*float(penalty)
+                        dfpgrade.set_value(0,grade_penalty,2)
+                        dfpmax.set_value(dfpgrade.index[0],'comment',dname)
+
+
+                dfpmax['grade'] = dfpgrade
+
+            # Problem not submit
             else:
-                r = r.append(pd.DataFrame([[date, pid, "NOT SUBMITTED", 0, ""]], columns=submissions_df.columns).iloc[0])
+                dfpmax = pd.DataFrame([["NOT SUBMITTED", pid, "NOT SUBMITTED", 0, "NOT SUBMITTED"]], columns=submissions_df.columns)
+
+            if r.empty:
+                r = dfpmax
+            else:
+                r = r.append(dfpmax)
+
+
     return r
 
 def get_submissions(sheet_name, gc):
@@ -208,7 +215,7 @@ def get_submissions(sheet_name, gc):
     dates      = wks.col_values(1)
     ids        = wks.col_values(2)
     result     = wks.col_values(3)
-
+    
     dates = [i for i in dates if i!='' and i!="SUBMISSION DATE"]
     ids = [i for i in ids if i!='' and i!="PROBLEM NUMBER"]
     result = [i for i in result if i!='' and i!="RESULT"]
@@ -223,14 +230,19 @@ def get_submissions(sheet_name, gc):
 
 def get_coursepart_summary(pdefs, grades):
     r = []
+
     for pset in pdefs.keys():
+
         pids = pdefs[pset]["problems"]
+
         psetgrades = []
         for pid in pids:
+
             pgrade = grades[grades.problem_id==pid].grade
             pgrade = pgrade.iloc[0] if len(pgrade)>0 else 0
             psetgrades.append(pgrade)
-        r.append([pset, np.mean(psetgrades)])
+
+        r.append([pset, np.mean(np.array(psetgrades).astype(np.float))])
     r.append(["TOTAL", np.mean([i[1] for i in r])])
     return pd.DataFrame(r, columns=["problemset", "grade"]).sort_values(by=["problemset"])
 
@@ -281,7 +293,12 @@ def compute_grades(course, sheet_name, gc=None):
             continue
         course_part = course[k]
         grades  = get_coursepart_grades(course_part["defs"], submissions)
+
+        print "\nGRADES:\n"
+        print grades
+
         summary = get_coursepart_summary(course_part["defs"], grades)
+
 
         # save detail and summary in student sheet
         dataframe_to_gsheet(wks, grades, k, start_row=start_row, start_col=1)

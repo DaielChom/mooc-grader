@@ -13,7 +13,7 @@ def grade():
     
     if adivina() != adivina_respuesta():
         print("Intenta nuevamente")
-        grade = 3.5
+        grade = 2
         return grade
     
     return grade
