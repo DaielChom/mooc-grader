@@ -64,3 +64,5 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 4. sacar a un lado lo del template del quiz, para que al profesor le quede mas facil crear los propios.
 5. meterle mano a la redaccion y ortografia XD. que mierda.
 Una vez limpira la maquina despues de estos arreglos, y otros que recuerde, ahi si pasar a la parte a que el grade funcione independientmeente del lenguaje.
+6. que muestre la direccion donde se crea el copy-to-students
+Listo esos son los arreglos que se le deben poner al mooc y ahi si saltar a lo de que el grader funcione independiente del lenguaje.
