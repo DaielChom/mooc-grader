@@ -235,7 +235,7 @@ def get_coursepart_summary(pdefs, grades):
             pgrade = grades[grades.problem_id==pid].grade
             pgrade = pgrade.iloc[0] if len(pgrade)>0 else 0
             psetgrades.append(pgrade)
-        r.append([pset, np.mean(psetgrades)])
+        r.append([pset, np.mean(np.array(psetgrades).astype(np.float))])
     r.append(["TOTAL", np.mean([i[1] for i in r])])
     return pd.DataFrame(r, columns=["problemset", "grade"]).sort_values(by=["problemset"])
 
