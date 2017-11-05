@@ -58,11 +58,12 @@ Me siento hacker, de haber sabido como funciona la maquina virtual desde antes h
 
 #### 30 - oct - 2017:
 "Millonario, huelo dinero ajjaja, pero calmado. No hagas lo de la lecherita". A raul le da risa que no escriba, ajaaa. aunque a cualquiera en las reuniones hablamos de bsatantes cosas que es facil perder la cuneta de las mismas. y antes de que yo pierda la cuenta se que son 4 cosas que le debo corregir al mooc, antes de pasar a la parte de calificar con notas.
-1. Arreglar la parte de la definicion del curso, que el ejemplo quede de primeras y describir el mismo. y que lo de la estructura quede cuando uno va a definir la variable course.
-2. un warning de cuando el grader entrege una nota que se salga de 0 o el limite maximo. no matarme tanto en que haga algo solo el warning, eso si indicar que si el grader entrega notas diferentes a las definidas pues los calculos no cuadraran.
-3. que muestre el link del rlxmooc que se crea, y agregar al fondo, sin necesidad de que yo corra las celdas lo de agregar los deadlines.
-4. sacar a un lado lo del template del quiz, para que al profesor le quede mas facil crear los propios.
+1. ~~Arreglar la parte de la definicion del curso, que el ejemplo quede de primeras y describir el mismo. y que lo de la estructura quede cuando uno va a definir la variable course.~~
+2. ~~Un warning de cuando el grader entrege una nota que se salga de 0 o el limite maximo. no matarme tanto en que haga algo solo el warning, eso si indicar que si el grader entrega notas diferentes a las definidas pues los calculos no cuadraran.~~
+3. ~~que muestre el link del rlxmooc que se crea, y agregar al fondo, sin necesidad de que yo corra las celdas lo de agregar los deadlines.~~
+4. ~~sacar a un lado lo del template del quiz, para que al profesor le quede mas facil crear los propios.~~
 5. meterle mano a la redaccion y ortografia XD. que mierda.
 Una vez limpira la maquina despues de estos arreglos, y otros que recuerde, ahi si pasar a la parte a que el grade funcione independientmeente del lenguaje.
-6. que muestre la direccion donde se crea el copy-to-students
-Listo esos son los arreglos que se le deben poner al mooc y ahi si saltar a lo de que el grader funcione independiente del lenguaje.
+6. ~~que muestre la direccion donde se crea el copy-to-students
+Listo esos son los arreglos que se le deben poner al mooc y ahi si saltar a lo de que el grader funcione independiente del lenguaje.~~
+7. que grabe el curso completo en el archivo mooc

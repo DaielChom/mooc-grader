@@ -2,7 +2,7 @@
 # Grader funcion creada por el profesor, no se muestra al estudiante.
 def grade():
     
-    grade = 5
+    grade = 5 # maxgrade definido en el curso para este ejercicio
     
     # Funcion correcta
     def adivina_respuesta():
@@ -13,7 +13,7 @@ def grade():
     
     if adivina() != adivina_respuesta():
         print("Intenta nuevamente")
-        grade = 2
+        grade = 0
         return grade
     
     return grade
