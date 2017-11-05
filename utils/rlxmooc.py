@@ -166,7 +166,7 @@ def clear_worksheet_range(wks, cell_range):
         cell.value=""
     wks.update_cells(cell_list)
 
-def get_course_sheets(course, service=None):
+def get_course_sheets(service=None):
     if service is None:
         app_email, gc, service = get_RLXMOOC_credentials()
     files = retrieve_all_files(service)
@@ -185,7 +185,6 @@ def get_coursepart_grades(pdefs, submissions_df):
             # Problem Submit
             if len(dfp)>0:
                 dfpmax = dfp[dfp['result']==dfp['result'].max()]
-                print dfpmax
                 if len(dfpmax)>1:
                     dfpmax = dfpmax.drop(labels=[1], axis=0)
 
@@ -278,7 +277,7 @@ def dataframe_to_gsheet(wks, df, title, start_row, start_col):
 
     wks.update_cells(cell_list)
 
-def compute_grades(course, sheet_name, gc=None):
+def compute_grades(sheet_name, gc=None):
     if gc is None:
         app_email, gc, service = get_RLXMOOC_credentials()
 
@@ -321,7 +320,7 @@ def compute_grades(course, sheet_name, gc=None):
 
     return grades_summary
 
-def save_class_grades(course, class_grades, gc=None):
+def save_class_grades(class_grades, gc=None):
     if gc is None:
         app_email, gc, service = get_RLXMOOC_credentials()
 
@@ -332,16 +331,16 @@ def save_class_grades(course, class_grades, gc=None):
          print "The grade sheet for",course_id,"was created, check your email"
          sys.stdout.flush()
 
-def compute_all_grades(course):
+def compute_all_grades():
     app_email, gc, service = get_RLXMOOC_credentials()
-    sheet_names = get_course_sheets(course, service)
+    sheet_names = get_course_sheets(service)
 
     class_grades = None
     for sheet_name in sheet_names:
         if sheet_name==course["name"]+"-grades":
             continue
 
-        grades_summary = compute_grades(course, sheet_name, gc)
+        grades_summary = compute_grades(sheet_name, gc)
 
         if class_grades is None:
             class_grades = pd.DataFrame([], columns = grades_summary.columns)
