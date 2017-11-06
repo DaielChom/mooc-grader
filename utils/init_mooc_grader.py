@@ -5,7 +5,8 @@ from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
 
-course_id   = "##COUSERNAME##"
+course = ##COURSE##
+course_id   = course['name']
 
 def encryptDecrypt(input):
         key = ##KEYPY## #Can be any chars, and any size array
@@ -154,7 +155,7 @@ def clear_worksheet_range(wks, cell_range):
         cell.value=""
     wks.update_cells(cell_list)
 
-def get_course_sheets(course, service=None):
+def get_course_sheets(service=None):
     if service is None:
         app_email, gc, service = get_RLXMOOC_credentials()
     files = retrieve_all_files(service)
@@ -173,7 +174,7 @@ def get_coursepart_grades(pdefs, submissions_df):
             # Problem Submit
             if len(dfp)>0:
                 dfpmax = dfp[dfp['result']==dfp['result'].max()]
-                print dfpmax
+
                 if len(dfpmax)>1:
                     dfpmax = dfpmax.drop(labels=[1], axis=0)
 
@@ -266,7 +267,7 @@ def dataframe_to_gsheet(wks, df, title, start_row, start_col):
 
     wks.update_cells(cell_list)
 
-def compute_grades(course, sheet_name, gc=None):
+def compute_grades(sheet_name, gc=None):
     if gc is None:
         app_email, gc, service = get_RLXMOOC_credentials()
 
@@ -309,7 +310,7 @@ def compute_grades(course, sheet_name, gc=None):
 
     return grades_summary
 
-def save_class_grades(course, class_grades, gc=None):
+def save_class_grades(class_grades, gc=None):
     if gc is None:
         app_email, gc, service = get_RLXMOOC_credentials()
 
@@ -365,6 +366,44 @@ def fix_sharing():
             service.permissions().create(fileId = s["id"], body=user_permision, fields="id").execute()
             print "permissions set", usermail
 
+def check_result(result,pid):
+    ## VERFICIAR CUANDO SEA MAYOR A LA NOTA MAXIMA
+    comentario = ""
+    maxgrade = 0
+
+    ids = [ i for i in course.keys() if i!='name']
+    for i in ids:
+        if(pid[:-2] in course[i]['defs'].keys()):
+            maxgrade = course[i]['defs'][pid[:-2]]['maxgrade']
+
+    if (result<0 or result>maxgrade):
+        comentario = "NOTA FUERA DEL RANGO"
+    return comentario
+
+def add_deadline():
+    deadlines ={}
+    l = {}
+    for i in course:
+        if i!="name":
+            for j in course[i]['defs']:
+                deads = course[i]['defs'][j]['deadlines'].keys()
+                for k in deads:
+                    l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
+                deadlines.update({j:l})
+    line = []
+    for i in deadlines:
+        for j in deadlines[i]:
+            line.append((course_id+"::"+i+"::"+deadlines[i][j],j))
+
+    for i in line:
+        hl = i[0]
+        sl = i[1].replace(" ","_")
+
+        app_email, gc, service = get_RLXMOOC_credentials()
+        config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+        config. append_row([hl,sl.replace("_"," ")])
+        print "OK deadline"
+
 if len(sys.argv)<2:
     sys.exit(0)
 
@@ -373,28 +412,23 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     print "Conecting.."
     app_email, gc, service = get_RLXMOOC_credentials()
     template = gc.create("MOOCGRADER CONFIGS")
+
     print "Creating moocgrader"
     template.add_worksheet('config', 1, 1)
     print "Creating worksheet config"
-    template.share('##EMAIL##', perm_type='user', role='writer')
+    template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
     print "Sharing moocgrader"
+    print "Adding Deadlines"
+    add_deadline()
     print "OK"
-
-if sys.argv[1]=="ADD_DEADLINE":
-
-    hl = sys.argv[2]
-    sl = sys.argv[3]
-
-    app_email, gc, service = get_RLXMOOC_credentials()
-    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
-    config. append_row([hl,sl.replace("_"," ")])
-    print "OK deadline"
+    print "https://docs.google.com/spreadsheets/d/"+template.id
 
 if sys.argv[1]=="CHECK_SOLUTION":
    pid = sys.argv[2]
    src = urllib.unquote_plus(sys.argv[3])
    result = check_solution(pid, src)
-   print "evaluation result", result
+   comentario = check_result(result,pid)
+   print "evaluation result", result, comentario
 
 
 if sys.argv[1]=="SUBMIT_SOLUTION":
@@ -435,11 +469,13 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
            break
 
    result = check_solution(pid,src)
+   comentario = check_result(result,pid)
    datestr = datetime2str(get_localized_inet_time())
    wks.update_cell(i+1,1,datestr)
    wks.update_cell(i+1,2,pid)
    wks.update_cell(i+1,3,result)
    wks.update_cell(i+1,5,src)
+   wks.update_cell(i+1,6,comentario)
    if hard_deadline_expired:
        wks.update_cell(i+1,4, "HARD DEADLINE EXPIRED")
        print "SUBMITTED AFTER HARD DEADLINE"
