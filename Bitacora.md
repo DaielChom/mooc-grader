@@ -74,3 +74,8 @@ Listo esos son los arreglos que se le deben poner al mooc y ahi si saltar a lo d
 * Arreglar lo del problema del correo del profesor
 * Agregarle una etiqueta en github, que eso no tengo ni puta idea como sera
 * Empezar con lo del grader independiente del lenguaje.
+
+#### 19 - Nov - 2017:
+"Hoy debe ser productivo" No he avansado nada, pase el fin de semana en aguazul y me la he pasado traabajando en el diplomado que no me he metido con el mooc-grader. pero hoy sera mero mooc grader, cabe recordar que tuve una reunion con raul y fabio y se debe hacer una exposicion el jueves con todo el trabajo que se hizo. para eso tengo que hacer dos o tres transparencias y erda creo que primero me matare con el grader y luego si con la presentacion.
+* Diapositivas
+* Grader independiente del lenguaje.|

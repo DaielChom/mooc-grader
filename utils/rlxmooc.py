@@ -71,27 +71,12 @@ def google_drive_create_file_grade_final(gc, sname):
     grade.add_worksheet('grades', 100, 100)
     grade.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
 
-def check_solution (pid, src):
-
-   # execute submitted code (must be a function)
-   exec(src)
-
-   # load grader code
-   grader_fname = "utils/grader_"+pid+".epy"
+def check_solution (pid):
+   grader_fname = "utils/grader_"+pid+".cry"
    with open(grader_fname, 'r') as myfile:
         grader_src = encryptDecrypt(myfile.read())
+   return grader_src
 
-   exec(grader_src)
-   globals().update(locals())
-
-   # call grader code
-   try:
-       r = eval("grade()")
-   except Exception as e:
-       traceback.print_exc()
-       r = "EXECUTION ERROR"
-
-   return r
 
 fmt_tz   = "%Y/%m/%d %H:%M:%S [%z]"
 fmt_notz = "%Y/%m/%d %H:%M:%S"
@@ -376,7 +361,7 @@ def check_result(result,pid):
         if(pid[:-2] in course[i]['defs'].keys()):
             maxgrade = course[i]['defs'][pid[:-2]]['maxgrade']
 
-    if (result<0 or result>maxgrade):
+    if (float(result)<0 or float(result)>float(maxgrade)):
         comentario = "NOTA FUERA DEL RANGO"
     return comentario
 
@@ -425,8 +410,8 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
 
 if sys.argv[1]=="CHECK_SOLUTION":
    pid = sys.argv[2]
-   src = urllib.unquote_plus(sys.argv[3])
-   result = check_solution(pid, src)
+   #src = urllib.unquote_plus(sys.argv[3])
+   result = check_solution(pid)
    comentario = check_result(result,pid)
    print "evaluation result", result, comentario
 
@@ -468,7 +453,7 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
        if col1[i]=='':
            break
 
-   result = check_solution(pid,src)
+   result = check_solution(pid)
    comentario = check_result(result,pid)
    datestr = datetime2str(get_localized_inet_time())
    wks.update_cell(i+1,1,datestr)
