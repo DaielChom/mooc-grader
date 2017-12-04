@@ -78,4 +78,15 @@ Listo esos son los arreglos que se le deben poner al mooc y ahi si saltar a lo d
 #### 19 - Nov - 2017:
 "Hoy debe ser productivo" No he avansado nada, pase el fin de semana en aguazul y me la he pasado traabajando en el diplomado que no me he metido con el mooc-grader. pero hoy sera mero mooc grader, cabe recordar que tuve una reunion con raul y fabio y se debe hacer una exposicion el jueves con todo el trabajo que se hizo. para eso tengo que hacer dos o tres transparencias y erda creo que primero me matare con el grader y luego si con la presentacion.
 * Diapositivas
-* Grader independiente del lenguaje.|
+* Grader independiente del lenguaje.
+
+#### 21 - Nov - 17:
+"Estoy eufrico, fue un buen dia, me relacione con muchas personas y avance bastante en mis cosas, bastantes risas y recocha. jaj un ben dia y la de vladimir paila, pero despues tengo ganas de hacer varias compras, la lista de compras ira despues". Hoy me reuni con raul durante la clase de bigdata, aunque tengo que ponerme serio con los problemsets. el caso es que hable con el y se hicieron unos pequeños cambios al proceso de check y submit, lo que se hara es ejecutar un shell .sh el cual entregue la nota, el shell debe estar encriptado y es el profesor el que se encarga de hacer dicho shell, yo solo le digo que lo ponga con cierto formato en cierto directorio, el check y submit lo desencriptan y sacan la nota, los mensajes e imprime y pues guarda la nota. y ya de esa manera queda todo funcionando, a otra cosa el binario crypt el profesor no lo entrega en el repo de los estudiantes. A bueno si, ya el jeuves a las 8:30 esta la exposicion final de esta monda, ya lo que fue fue como quien dice por ahi. me da cagada que raul no me contrate despues pa otras cosas, ya se esta dando cuenta de que soy bien brutico XD.  
+
+#### 23 - Nov - 17:
+"Setsi se nos va". Raul le da risa mi forma de entender. Esta vez no fue planeada la reunion ni nada por el estilo, llegue a la oficina de el y le pedi un rato a ver si podia y dijo que si y pues entre, despues de que el ceo hablara con el profe. Y tengo un par de nuevas tareas, tambien me dio una idea de las nuevas cosas que querian implementar en el mooc-grader. entoncs la cosa es asi.
+* Arreglar lo de copy-to-students para que tambien agrege la carpeta de graders compilados
+* Quitar el sucess
+* hacer un ejercicio en c
+* Limpiar
+Y aqui un buen commit. Ahora despues de que el grader funcione independiente del lenguaje raul todavia tiene una gran cantidad de ideas, sobre todo para evitar que los estudiantes dejen tanta copia. Y es que teniendo un banco de preguntas, cada vez, en un quiz, que el estudiante se registre en el encabesado del quiz se renderice una serie de preguntas, de las cuales se tenia un md y un codigo. la idea es que los ejercicios sean aleatorios, pero que cada vez a cada estudiante se le generen los mismos, es decir que con el correo o el codigo del estudiante se gener una serie de numeros de preguntas pero por estudiante siempre se le va a generar la misma serie aleatoria. Por ahora realizar las primeras tareas y luego si matarme con lo de el renderizado.

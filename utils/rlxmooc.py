@@ -4,6 +4,8 @@ import pandas as pd
 from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
+import subprocess
+
 
 course = {'name': '2017BG', 'QUIZ': {'defs': {'QZ1': {'maxgrade': 5.0, 'problems': ['QZ1_1', 'QZ1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}, 'QZ2': {'maxgrade': 5.0, 'problems': ['QZ2_1'], 'deadlines': {'2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}, '2015/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}}}}, 'weight': 1}}
 course_id   = course['name']
@@ -72,10 +74,13 @@ def google_drive_create_file_grade_final(gc, sname):
     grade.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
 
 def check_solution (pid):
-   grader_fname = "utils/grader_"+pid+".cry"
+   grader_fname = "utils/graders/grader_"+pid+".grader"
    with open(grader_fname, 'r') as myfile:
-        grader_src = encryptDecrypt(myfile.read())
-   return grader_src
+        grader_src = str(encryptDecrypt(myfile.read()))
+
+   output_file = subprocess.check_output(grader_src, shell=True, executable=grader_src.split()[0][2:]).split("##")
+   print output_file[0]
+   return output_file[1][:-1]
 
 
 fmt_tz   = "%Y/%m/%d %H:%M:%S [%z]"
@@ -418,7 +423,13 @@ if sys.argv[1]=="CHECK_SOLUTION":
 
 if sys.argv[1]=="SUBMIT_SOLUTION":
    pid = sys.argv[2]
-   src = urllib.unquote_plus(sys.argv[3])
+
+   grader_fname = subprocess.check_output("ls utils/student_function/ | grep "+pid, shell=True, executable="/bin/bash")
+
+   with open("utils/student_function/"+grader_fname.split()[0], 'r') as myfile:
+       grader_src = myfile.read()
+
+   src = grader_src
    problemset_id = pid.split("_")[0]
 
    print "connecting ...",
