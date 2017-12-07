@@ -80,7 +80,7 @@ def check_solution (pid):
 
    output_file = subprocess.check_output(grader_src, shell=True, executable=grader_src.split()[0][2:]).split("##")
    print output_file[0]
-   return output_file[1][:-1]
+   return float(output_file[1])
 
 fmt_tz   = "%Y/%m/%d %H:%M:%S [%z]"
 fmt_notz = "%Y/%m/%d %H:%M:%S"
