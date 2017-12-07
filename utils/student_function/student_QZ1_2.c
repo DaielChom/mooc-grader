@@ -1,0 +1,4 @@
+
+char mean() {
+    return 'H';
+}
