@@ -6,11 +6,11 @@ from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
 import subprocess
 
-course = ##COURSE##
+course = {'name': '2017BG', 'QUIZ': {'defs': {'QZ1': {'maxgrade': 5.0, 'problems': ['QZ1_1', 'QZ1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}, 'QZ2': {'maxgrade': 5.0, 'problems': ['QZ2_1'], 'deadlines': {'2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}, '2015/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}}}}, 'weight': 1}}
 course_id   = course['name']
 
 def encryptDecrypt(input):
-        key = ##KEYPY## #Can be any chars, and any size array
+        key = ['A', 'M', 'B', 'N','O','F','E','A','E','E'] #Can be any chars, and any size array
         output = []
 
         for i in range(len(input)):
@@ -34,7 +34,7 @@ def check_user_auth():
    return True, userinfo["email"]
 
 def get_RLXMOOC_credentials():
-   json_key = ##JSONKEY##
+   json_key = {'client_x509_cert_url': 'https://www.googleapis.com/robot/v1/metadata/x509/bg2017%40bg-182713.iam.gserviceaccount.com', 'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'private_key': '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC0OX6GreqdpnWg\nTeOK2DAlFe071qEkFHhyz9DCuL6aNuv6zLbpHZ5+cbGUZayip9jnM87I6wP7ZSPF\n4YpraDaUGtztC9Yl1HNrKk0ClqZJ/vQzPNYLwr5UAGpPcBLfpfYEHMwxbDAytdyo\nuv0wG3mtzQFO1kXdaFuTSAVsFA6HwFzMfnhDLaht+yHZsjP2zzecTsifK7tf9fjr\nqJHnvWrizy2A2PnFJzXAIRjOv60HT6uhwtyMmpfFfYnvPkfHsgj6NKsASY8n9fN8\nE+SN+M83bm1DUKJeZ7gSTPcMZOXwnHSlhpbne9lIum0tjFQBcvn8O3V/tF8qBKf6\nl3tiHTNHAgMBAAECggEAApRYFUFj/EGnqVW0DgauGbnInXSi9cs9Nhd3W3IdeEOU\n+Q/5BjkgTZr++arC38kbN6PsL7/9XJnD+08RFhx1u4Tu6I2k0QHLbRs74u+ZDbIS\neLFENwLgin8/BkgKXR0Y+lIXMhXkUrV7pQaYHRonka8/d4tlkJevx9neCf/3fUXj\naA9rxvNbGQK/Or0bHJIG35vM5Q2p3g4dUF0Rf3sbntas9K7J5J+q/IT/6FYTdiIY\nfp+ARfyKv99yo5hRmEm56Z+9JrD8GYGNELDBwY0kq3e6hzeUl9IVhx9yxSGcqkrh\nl4W/M806ayRo7zh51XLv5aUAKJGMBuOLWl0ePF6KkQKBgQDXzX4qV1WqCWku7M7E\nAeo61Q/w4fRryAY69DsJ2KNpuw88jB2N2PJMdDfyQYNla06Fkxuk8DZ4DX6epEab\nXPyFNb6025poOJzm8jDbkWjsUrHXkBB1W+9dAo5py0S73LP4CfnMhHcOybeDKu8U\nEhP5YZNTM/sz9+7WeGrjGo+NewKBgQDVy3dXpR7wpZFWaLP9awgStiP1hwZ6yrRq\n3jb8LGllmtd39EGKpnVtVtTWfoCQsfWDvvYepFswhtDtvMl/ff+xy6bgMTOTbHDo\n/jMm7Hy4smkScKDXedMksZfTgoW/HmcnWJeCdXW4YdsL9AmVpxwK0P76BWPa1oAx\nDlO7WnIZpQKBgQCfpzqQzp3ktyOnALETl6sXLWumtTPjzU62rNtEtI5o+WgTTkHL\nIFZZs510T32LObEU5zmLc9+IP8uOSFCoPknfr1xQZys7sa56uXDl8BTkyWUi6kUS\n3hofAHYl1KkcJvLKLW8uHE4MlbV7h/bqLVmzpLme05Uj5GhBKUNCkvLjIwKBgQCE\n4DyAQKQGNSErb0/OxWLzHjkjNJSWZL3VXd8WxBONjrs0Vp8VqXd6SWlnFqCZTcGl\n7F3TlZsHggMAf0FM9+affk9tL6c6jT9vz+3C12B8+oXLbCzLP3A3chlG3+x4aFD8\nZ1djQdW0jz0xJK+AT6hiIJsYkZkKPh7WXm00GHap8QKBgAfQ48Lre0t6c/mkgygC\npjfuCDIncVgaYbamC53tzAyYyx4nEuiqycmk6bx6vLcAhQ3bgF5oF6MuO/SDQqkH\nom8NWi58le8zmG09EVDmgw1C6sq7/MTgUkt/kYRER4yqJE2aSLrCgkQfD8WdUxmY\nAV7oOOsGd/AYwv4cqkNGa4HX\n-----END PRIVATE KEY-----\n', 'client_email': 'bg2017@bg-182713.iam.gserviceaccount.com', 'private_key_id': '467b8256caa9a634daaede7c98cf76029b525885', 'client_id': '105854021643136742430', 'token_uri': 'https://accounts.google.com/o/oauth2/token', 'project_id': 'bg-182713', 'type': 'service_account', 'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs'}
    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
    credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'].encode(), scope)
    gc = gspread.authorize(credentials)
@@ -64,13 +64,13 @@ def google_drive_create_file(gc, fname, email):
     template.get_worksheet(0).update_acell('C1', "RESULT")
     template.get_worksheet(0).update_acell('D1', "REMARKS")
     template.get_worksheet(0).update_acell('E1', "CODE")
-    template.share('##EMAIL##', perm_type='user', role='writer')
+    template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
     template.share(email, perm_type='user', role='reader')
 
 def google_drive_create_file_grade_final(gc, sname):
     grade = gc.create(sname)
     grade.add_worksheet('grades', 100, 100)
-    grade.share('##EMAIL##', perm_type='user', role='writer')
+    grade.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
 
 def check_solution (pid):
 
@@ -161,7 +161,13 @@ def get_coursepart_grades(pdefs, submissions_df):
 
             # Problem Submit
             if len(dfp)>0:
-                dfpmax = dfp[dfp['result']==dfp['result'].max()]              
+                dfpmax = dfp[dfp['result']==dfp['result'].max()]
+                print len(dfpmax)
+                print dfpmax  ###AQUI##
+                #if len(dfpmax)>1:
+                    #print help(dfpmax)
+                    
+                    #dfpmax = dfpmax.drop(0)
 
                 dfpgrade = dfpmax['result'].copy()
 
@@ -306,16 +312,16 @@ def save_class_grades(class_grades, gc=None):
          print "The grade sheet for",course_id,"was created, check your email"
          sys.stdout.flush()
 
-def compute_all_grades():
+def compute_all_grades(): ###AQUI##
     app_email, gc, service = get_RLXMOOC_credentials()
-    sheet_names = get_course_sheets(service)
+    sheet_names = get_course_sheets(service) ###AQUI##
 
     class_grades = None
     for sheet_name in sheet_names:
         if sheet_name==course["name"]+"-grades":
             continue
 
-        grades_summary = compute_grades(sheet_name, gc)
+        grades_summary = compute_grades(sheet_name, gc) ###AQUI##
 
         if class_grades is None:
             class_grades = pd.DataFrame([], columns = grades_summary.columns)
@@ -332,7 +338,7 @@ def fix_sharing():
     rlxmooc_permision = {
         'type': 'user',
         'role': 'writer',
-        'emailAddress': '##EMAIL##'
+        'emailAddress': 'pruebadaielchom@gmail.com'
     }
 
     for s in sheets:
