@@ -413,6 +413,9 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     add_deadline()
     print "OK"
     print "https://docs.google.com/spreadsheets/d/"+template.id
+    
+if sys.argv[1]=="GENERATE_QUIZ":
+    print "Generar"
 
 if sys.argv[1]=="CHECK_SOLUTION":
 
