@@ -108,3 +108,32 @@ Pues eme aqui de nuevo en la auxiliatura, este semstre toca puro pedaleo intenso
 
 # 26 - Feb - 18:
 La Semana pasada tuve una reunion con raul y segun el ya hablo con el profe fabio de lo que ser√° mi tarea este semestre  y en genreal consiste, segun eso la de todo el semestre, en hacer que lo del generador de quices funcione, creo que lo explicare mejor en un dibujito y lo pondre en un notebook y ahi empezare el desarrollo a ver hasta donde puedo llegar, la cuestion es que debo hacer eso en todo el semestre, espero porder hacerlo incluso antes, pero no se pues no se que tanto complique me de.
+
+# 5 - Mar - 18:
+Esta semana planeo seguir trabajando, lo que sacare ser√°una funcion a la que le mando una lista con los quices y este los busque y los impeima, puta vida gustavo no tiene tiempo y ahora como mierdas salgo de ese hp diplomado.y ahora me dice que hablar a medio dia :'( dios matenme por que me muero. Bueno trabajemos en la aux.
+
+# 7 - Mar - 18:
+Ma√ana tengo una reunion, bueno mi primera reunion virtual con rauli√o lopez ajjajajajaaj y pues le solicite la reunion por que tengo un par de dudas que como es mejor voy a plantear aca para ma√ana saber que voy a hablar y no llegar asi a loco, entoncs
+* Ponerle o no QZ1 al generador del quiz
+* hacer u solo banco o un banco por quiz
+* pedir o no la cantidad de pregntas por quiz, o sacarlas del diccionario del curso, lo que implicaria que el usuario debe indicar que se hara como taller y que como evaluacion
+* exportarle o no al usario o tan solo el profe pasa el banco y el quiz
+* los grader de los quices estan desde un principio en el paquete del estudiante
+* una carptea de bancos
+* debo poner la nocion de quiz automatico en varios lugares de las instrucciones
+* celdas RUN y CHECK - ponerlas o no, dado que si hay 40 problemas el estudinte no puede tener 40 notas pero si deben haber 40 graders que despues como se suben a la hoja excel nicluso tendra incompatibilidad con el diccionario del curso dado que se definen desde un principio y es con ese nombre con que se califica en el grader.
+
+* 
+pensado podria ser algo en el banco esta el qz1_40 y el renderizador le ponga qz1_40 qz1_1
+
+# 8 - Mar - 18:
+jijijijiji esas reuniones con raul siempre me parecen geniales, me pregunto algo del proyecto y yo como pues profe ando leyendo ajjajajaj esperar a ver igual ayer no lei, andaba con lo del diplomado y pues pensando en lo de la aux y bueno otras cositas. La cuestion es que llegamos a las sigueintes concluciones con rauli√o y son:
+* primero y la mas importante marcar la diferencia entre problemset y quiz en las instrucciones del curso y eso implica cambiar varias cosas.
+* que la definicion del quiz se haga en el banco en la primera celda.
+* en las instrucciones el quiz dejarlo dinamyc y la ruta del banco
+* hacer un export de quices
+* en el quiz del estudiante quede qz40 qz1 y asi pero en la hoja excel debe qeuda qz40, entoncs creo que lo que hay que cambiar es el algoritmo que saca el excel final para cuadno promblem =="dynamc" entoncs califique diferente
+* la linea check y submit la pone el profesor en el banco
+* que lo primero sea exportar y ahi si trabar en el quiz
+* revisar todo desde 0 para ver el funcionamiento.
+Creo que eso es todo, debo primero pensar por donde empezar :'( la otra es que deberia hacer un breve commit en el punto en el que estoy o no se
