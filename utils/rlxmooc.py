@@ -8,6 +8,7 @@ import subprocess
 import base64
 from IPython.display import display, Javascript
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
+import json
 
 course = {'name': '2017BG', 'QUIZ': {'defs': {'QZ1': {'maxgrade': 5.0, 'problems': ['QZ1_1', 'QZ1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}, 'QZ2': {'maxgrade': 5.0, 'problems': ['QZ2_1'], 'deadlines': {'2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}, '2015/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}}}}, 'weight': 1}}
 course_id   = course['name']
@@ -398,30 +399,48 @@ def add_deadline():
         config. append_row([hl,sl.replace("_"," ")])
         print "OK deadline"
 
+# generar_banco_py
+# Se encarga de generar un archivo banco.py
+# a base del archivo banco.ipynb
+# dicho archivo se encripta en esta misma funcion
+# archivo que contiene las preguntas para ser
+# renderizadas en los dinamyc quiz
+def generar_banco_py():
+    PATH = "./banco"
+
+    json_notebook = json.load(open(PATH+'.ipynb'))
+
+    quices = []
+    quiz = []
+    switch = False
+
+    for i in json_notebook['cells']:
         
-        
-def read_banco():
-  
-  import json
-  json_notebook = json.load(open('./banco.ipynb'))
-  quices = []
-  quiz = []
-  switch = False
-  
-  for i in json_notebook['cells']:
+        if len(i['source']):
+            
+            if i['source'][0] == "###INIT###":
+                switch = True
+                
+            if switch:
+                quiz.append(i)
+            
+            if i['source'][0] == "###END###":
+                quices.append(quiz)
+                quiz = []
+                switch = False
+
+    archivo_py = open(PATH+".py","w")
+    archivo_py.write("quices = "+ str(quices))
+    archivo_py.close()
     
-    if len(i['source']):
-      if i['source'][0] == "###INIT###":
-        switch = True
-
-      if switch:
-        quiz.append(i)
-
-      if i['source'][0] == "###END###":
-        switch = False
-        quices.append(quiz)
-        quiz = []
-  return quices
+    
+# read_banco
+# Se encarga de leer el archivo banco como un JSON y
+# extrae los ejercicios del mismo teniendo en cuenta 
+# las etiqueta INICIO y FIN
+def read_banco():
+    import banco as bc     
+    return bc.quices
 
 def read_quiz(banco, list_points):
   for i in list_points:
@@ -442,25 +461,27 @@ def email_to_seed(email):
   return int(seed)
 
 def render_quiz(email):
-  cells = []
-  banco = read_banco()
-  seed = email_to_seed(email)
-  list_points = generate_seed(seed,len(banco))  
-  quiz_for_student = read_quiz(banco,list_points) 
-  
-  for i in quiz_for_student:
-    for j in i:
-      if j['cell_type']=="markdown":
-        cells.append([j['source'][0],"markdown"])
-      if j['cell_type']=="code":    
-        if len(j['source']) != 0:
+    cells = []
+    banco = read_banco()
+    seed = email_to_seed(email)
+    list_points = generate_seed(seed,len(banco))
+    quiz_for_student = read_quiz(banco,list_points)
+       
+    for i in quiz_for_student:
+        for j in i:
+            if j['cell_type']=="markdown":
+                cells.append([j['source'][0],"markdown"])
+            
+            if j['cell_type']=="code":
+                if len(j['source']) != 0:
 
-          code_lines = j['source']
-          z = ""
-          for k in code_lines:
-            z = z + k            
-          cells.append([z,"code"])
-  return cells
+                    code_lines = j['source']
+                    z = ""
+                    for k in code_lines:
+                        z = z + k            
+                        cells.append([z,"code"])
+  
+    return cells
         
 if len(sys.argv)<2:
     sys.exit(0)
@@ -488,6 +509,12 @@ if sys.argv[1]=="CHECK_SOLUTION":
    result = check_solution(pid)
    comentario = check_result(result,pid)
    print "evaluation result", result, comentario
+    
+    
+
+# GENERAR_BANCO_PY
+if sys.argv[1]=="GENERAR_BANCO_PY":
+    generar_banco_py()
     
 if sys.argv[1]=="RENDER_QUIZ":
     

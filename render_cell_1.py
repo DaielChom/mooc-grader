@@ -19,10 +19,9 @@ def new_cell(texto,tipo_celda):
     """.format(texto)))
 
 def import_cells():
-    dato = []
-    print "SS"
+    dato = []    
     import quiz_for_student as qft
-    print qft.l
+    
     for i in qft.l:
         new_cell(i[0],i[1])
 
