@@ -9,7 +9,7 @@ def new_cell(texto,tipo_celda):
     display(Javascript("""
       var mark = IPython.notebook.insert_cell_above('markdown')
       mark.set_text("{0}")
-    """.format(texto)))
+    """.format(texto.encode('utf-8'))))
  
   if tipo_celda == "code":
     texto = bytes_to_str(base64.b64encode(str_to_bytes(texto)))
@@ -20,9 +20,9 @@ def new_cell(texto,tipo_celda):
 
 def import_cells():
     dato = []
-    print "SS"
-    import quiz_for_student as qft
-    print qft.l
+
+    import quiz_for_student2 as qft
+
     for i in qft.l:
         new_cell(i[0],i[1])
 

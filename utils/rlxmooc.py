@@ -418,16 +418,17 @@ def generar_banco_py():
         
         if len(i['source']):
             
-            if i['source'][0] == "###INIT###":
-                switch = True
-                
             if switch:
-                quiz.append(i)
+                if i['source'][0] != "###END###":
+                    quiz.append(i)
+            
+            if i['source'][0] == "###INIT###":
+                switch = True           
             
             if i['source'][0] == "###END###":
+                switch = False
                 quices.append(quiz)
                 quiz = []
-                switch = False
 
     archivo_py = open(PATH+".py","w")
     archivo_py.write("quices = "+ str(quices))
@@ -461,26 +462,29 @@ def email_to_seed(email):
   return int(seed)
 
 def render_quiz(email):
-    cells = []
-    banco = read_banco()
-    seed = email_to_seed(email)
+    
+    
+    cells = []    
+    banco = read_banco()    
+    seed = email_to_seed(email)    
     list_points = generate_seed(seed,len(banco))
     quiz_for_student = read_quiz(banco,list_points)
-       
+ 
     for i in quiz_for_student:
+       
         for j in i:
             if j['cell_type']=="markdown":
                 cells.append([j['source'][0],"markdown"])
             
             if j['cell_type']=="code":
                 if len(j['source']) != 0:
-
                     code_lines = j['source']
+                    
                     z = ""
-                    for k in code_lines:
+                    for k in code_lines:                        
                         z = z + k            
-                        cells.append([z,"code"])
-  
+                    cells.append([z,"code"])
+   
     return cells
         
 if len(sys.argv)<2:
@@ -513,9 +517,12 @@ if sys.argv[1]=="CHECK_SOLUTION":
     
 
 # GENERAR_BANCO_PY
+# Crea el archivo banco.py con todos los ejercicios.
 if sys.argv[1]=="GENERAR_BANCO_PY":
     generar_banco_py()
-    
+
+# RENDER_QUIZ
+# se encarga de exraer los ejercicios de banco.py para el estudiante dependiendo de su correo electronico.
 if sys.argv[1]=="RENDER_QUIZ":
     
     is_authorized, email = check_user_auth()
@@ -524,7 +531,7 @@ if sys.argv[1]=="RENDER_QUIZ":
         print "user not authenticsated, please run the first cell of this notebook to authenticate"
         sys.exit(0)
     
-    f = open("quiz_for_student.py","w")
+    f = open("quiz_for_student.py","w")    
     f.write("l = "+str(render_quiz(email)))
    
     

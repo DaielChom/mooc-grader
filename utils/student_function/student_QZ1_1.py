@@ -1,5 +1,3 @@
-## Ejercicio del estudiante
-
-def adivina():
-    nombre_profesor = "Daniel" # Adivine el nombre del profesor
-    return nombre_profesor
+def suma(a,b):
+    suma = a+b
+    return suma
