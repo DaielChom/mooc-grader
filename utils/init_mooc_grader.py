@@ -5,6 +5,7 @@ from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
 import subprocess
+import json
 
 course = ##COURSE##
 course_id   = course['name']
@@ -161,7 +162,7 @@ def get_coursepart_grades(pdefs, submissions_df):
 
             # Problem Submit
             if len(dfp)>0:
-                dfpmax = dfp[dfp['result']==dfp['result'].max()]              
+                dfpmax = dfp[dfp['result']==dfp['result'].max()]
 
                 dfpgrade = dfpmax['result'].copy()
 
@@ -389,6 +390,92 @@ def add_deadline():
         config. append_row([hl,sl.replace("_"," ")])
         print "OK deadline"
 
+# generar_banco_py
+# Se encarga de generar un archivo banco.py
+# a base del archivo banco.ipynb
+# dicho archivo se encripta en esta misma funcion
+# archivo que contiene las preguntas para ser
+# renderizadas en los dinamyc quiz
+def generar_banco_py():
+    PATH = "./banco"
+
+    json_notebook = json.load(open(PATH+'.ipynb'))
+
+    quices = []
+    quiz = []
+    switch = False
+
+    for i in json_notebook['cells']:
+
+        if len(i['source']):
+
+            if switch:
+                if i['source'][0] != "###END###":
+                    quiz.append(i)
+
+            if i['source'][0] == "###INIT###":
+                switch = True
+
+            if i['source'][0] == "###END###":
+                switch = False
+                quices.append(quiz)
+                quiz = []
+
+    archivo_py = open(PATH+".py","w")
+    archivo_py.write("quices = "+ str(quices))
+    archivo_py.close()
+
+# read_banco
+# Se encarga de leer el archivo banco como un JSON y
+# extrae los ejercicios del mismo teniendo en cuenta
+# las etiqueta INICIO y FIN
+def read_banco():
+    import banco as bc
+    return bc.quices
+
+def read_quiz(banco, list_points):
+  for i in list_points:
+    yield banco[i]
+
+def generate_seed(seed,len_banco):
+
+  list_points = []
+  for i in range(4):
+      seed = int((997*(seed)+3)%len_banco)
+      list_points.append(seed)
+  return list_points
+
+def email_to_seed(email):
+  seed = ""
+  for i in email:
+    seed = seed + str(ord(i))
+  return int(seed)
+
+def render_quiz(email):
+
+    cells = []
+    banco = read_banco()
+    seed = email_to_seed(email)
+    list_points = generate_seed(seed,len(banco))
+    quiz_for_student = read_quiz(banco,list_points)
+
+    for i in quiz_for_student:
+
+        for j in i:
+            if j['cell_type']=="markdown":
+                cells.append([j['source'][0],"markdown"])
+
+            if j['cell_type']=="code":
+                if len(j['source']) != 0:
+                    code_lines = j['source']
+
+                    z = ""
+                    for k in code_lines:
+                        z = z + k
+                    cells.append([z,"code"])
+
+    return cells
+
 if len(sys.argv)<2:
     sys.exit(0)
 
@@ -407,6 +494,24 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     add_deadline()
     print "OK"
     print "https://docs.google.com/spreadsheets/d/"+template.id
+
+# GENERAR_BANCO_PY
+# Crea el archivo banco.py con todos los ejercicios.
+if sys.argv[1]=="GENERAR_BANCO_PY":
+    generar_banco_py()
+
+# RENDER_QUIZ
+# se encarga de exraer los ejercicios de banco.py para el estudiante dependiendo de su correo electronico.
+if sys.argv[1]=="RENDER_QUIZ":
+
+    is_authorized, email = check_user_auth()
+
+    if not is_authorized:
+        print "user not authenticsated, please run the first cell of this notebook to authenticate"
+        sys.exit(0)
+
+    f = open("quiz_for_student.py","w")
+    f.write("l = "+str(render_quiz(email)))
 
 if sys.argv[1]=="CHECK_SOLUTION":
 

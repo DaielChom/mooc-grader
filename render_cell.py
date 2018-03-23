@@ -21,7 +21,7 @@ def new_cell(texto,tipo_celda):
 def import_cells():
     dato = []
 
-    import quiz_for_student2 as qft
+    import quiz_for_student as qft
 
     for i in qft.l:
         new_cell(i[0],i[1])

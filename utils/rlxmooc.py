@@ -5,12 +5,9 @@ from apiclient import discovery
 from oauth2client.file import Storage
 from oauth2client.client import SignedJwtAssertionCredentials
 import subprocess
-import base64
-from IPython.display import display, Javascript
-from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 import json
 
-course = {'name': '2017BG', 'QUIZ': {'defs': {'QZ1': {'maxgrade': 5.0, 'problems': ['QZ1_1', 'QZ1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}, 'QZ2': {'maxgrade': 5.0, 'problems': ['QZ2_1'], 'deadlines': {'2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}, '2015/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}}}}, 'weight': 1}}
+course = {'QUIZ': {'defs': {'QZ1': 'dynamic'}, 'weight': 0.5}, 'name': '2017BG', 'PROBLEM_SETS': {'defs': {'PS1': {'maxgrade': 5.0, 'problems': ['PS1_1', 'PS1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}}, 'weight': 0.5}}
 course_id   = course['name']
 
 def encryptDecrypt(input):
@@ -166,17 +163,12 @@ def get_coursepart_grades(pdefs, submissions_df):
             # Problem Submit
             if len(dfp)>0:
                 dfpmax = dfp[dfp['result']==dfp['result'].max()]
-                print len(dfpmax)
-                print dfpmax  ###AQUI##
-                #if len(dfpmax)>1:
-                    #print help(dfpmax)
-                    
-                    #dfpmax = dfpmax.drop(0)
 
                 dfpgrade = dfpmax['result'].copy()
 
                 for strdate in pdefs[pset]["deadlines"]:
                     date = str2datetime(strdate)
+                    ### PENALTY QUUIIIIZZZ
                     penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
                     dname   =  pdefs[pset]["deadlines"][strdate]["name"]
 
@@ -316,16 +308,16 @@ def save_class_grades(class_grades, gc=None):
          print "The grade sheet for",course_id,"was created, check your email"
          sys.stdout.flush()
 
-def compute_all_grades(): ###AQUI##
+def compute_all_grades():
     app_email, gc, service = get_RLXMOOC_credentials()
-    sheet_names = get_course_sheets(service) ###AQUI##
+    sheet_names = get_course_sheets(service)
 
     class_grades = None
     for sheet_name in sheet_names:
         if sheet_name==course["name"]+"-grades":
             continue
 
-        grades_summary = compute_grades(sheet_name, gc) ###AQUI##
+        grades_summary = compute_grades(sheet_name, gc)
 
         if class_grades is None:
             class_grades = pd.DataFrame([], columns = grades_summary.columns)
@@ -376,36 +368,63 @@ def check_result(result,pid):
     return comentario
 
 def add_deadline():
+    """Agrega los deadlines del diccionario course al archivo MOOCGRADER CONFIGS"""
+
     deadlines ={}
     l = {}
+
     for i in course:
         if i!="name":
             for j in course[i]['defs']:
-                deads = course[i]['defs'][j]['deadlines'].keys()
-                for k in deads:
-                    l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
-                deadlines.update({j:l})
+                if course[i]['defs'][j] != "dynamic":
+
+                    deads = course[i]['defs'][j]['deadlines'].keys()
+
+                    for k in deads:
+                        l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
+                    deadlines.update({j:l})
+
     line = []
     for i in deadlines:
         for j in deadlines[i]:
             line.append((course_id+"::"+i+"::"+deadlines[i][j],j))
 
+    add_deadline_moocconfig(line)
+
+def prepare_deadline_quiz(paramquiz, pid):
+
+    line = []
+    deads = []
+
+    for i in paramquiz['deadlines']:
+        deads.append(course['name']+"::"+pid+"::"+paramquiz['deadlines'][i]['name'],)
+        deads.append(i,)
+        deads.append(paramquiz['problems'],)
+        deads.append(paramquiz['deadlines'][i]['penalty'],)
+        deads.append(paramquiz['maxgrade'],)
+        line.append(deads)
+        
+    add_deadline_moocconfig(line)
+
+def add_deadline_moocconfig(line):
+    """Agrega una lista con los deadlines y otros parametros a la hoja de calculo MOOCGRADER CONFIG """
+
     for i in line:
         hl = i[0]
         sl = i[1].replace(" ","_")
-
         app_email, gc, service = get_RLXMOOC_credentials()
         config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
-        config. append_row([hl,sl.replace("_"," ")])
-        print "OK deadline"
+        if len(i) > 2:
+            config.append_row([hl,sl.replace("_"," "),i[2],i[3],i[4]])
+        else:
+            config.append_row([hl,sl.replace("_"," ")])
+        print " ... Deadline Added"
 
-# generar_banco_py
-# Se encarga de generar un archivo banco.py
-# a base del archivo banco.ipynb
-# dicho archivo se encripta en esta misma funcion
-# archivo que contiene las preguntas para ser
-# renderizadas en los dinamyc quiz
-def generar_banco_py():
+
+def generar_banco_py(pid):
+    """Crea un achivo banco.py con todos los ejercicios de un quiz y la identificacion
+    del quiz"""
+
     PATH = "./banco"
 
     json_notebook = json.load(open(PATH+'.ipynb'))
@@ -415,16 +434,16 @@ def generar_banco_py():
     switch = False
 
     for i in json_notebook['cells']:
-        
+
         if len(i['source']):
-            
+
             if switch:
                 if i['source'][0] != "###END###":
                     quiz.append(i)
-            
+
             if i['source'][0] == "###INIT###":
-                switch = True           
-            
+                switch = True
+
             if i['source'][0] == "###END###":
                 switch = False
                 quices.append(quiz)
@@ -432,28 +451,37 @@ def generar_banco_py():
 
     archivo_py = open(PATH+".py","w")
     archivo_py.write("quices = "+ str(quices))
+    archivo_py.write("\n")
+    archivo_py.write("pid = \""+pid+"\"")
     archivo_py.close()
-    
-    
-# read_banco
-# Se encarga de leer el archivo banco como un JSON y
-# extrae los ejercicios del mismo teniendo en cuenta 
-# las etiqueta INICIO y FIN
+
+
 def read_banco():
-    import banco as bc     
-    return bc.quices
+    """Extrae la lista de ejercicios presente en el archivo banco.py"""
+
+    import banco as bc
+    return bc.quices, bc.pid
 
 def read_quiz(banco, list_points):
-  for i in list_points:
-    yield banco[i]
-    
-def generate_seed(seed,len_banco):
-  
-  list_points = []
-  for i in range(4):
-      seed = int((997*(seed)+3)%len_banco)
-      list_points.append(seed)
-  return list_points
+    """Retorna aun lista de ejercicios del banco, a corde a list_points"""
+    for i in list_points:
+        yield banco[i]
+
+def generate_seed(seed,len_banco, pid):
+    """Genera una lista de numeros pseudoaleatoria"""
+
+    print "generating seed ..."
+    app_email, gc, service = get_RLXMOOC_credentials()
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    print "CONTINUAR ACA"
+    #print help(config)
+    count_quiz = 4
+
+    list_points = []
+    for i in range(count_quiz):
+        seed = int((997*(seed)+3)%len_banco)
+        list_points.append(seed)
+    return list_points
 
 def email_to_seed(email):
   seed = ""
@@ -462,31 +490,34 @@ def email_to_seed(email):
   return int(seed)
 
 def render_quiz(email):
-    
-    
-    cells = []    
-    banco = read_banco()    
-    seed = email_to_seed(email)    
-    list_points = generate_seed(seed,len(banco))
+    """ Returna una lista con los ejercicios prpuestos para un estudiante
+    en especifco teniendo en cuenta la lista generada aleatoriamente"""
+
+    cells = []
+    banco, pid = read_banco()
+    seed = email_to_seed(email)
+    list_points = generate_seed(seed,len(banco),pid)
+    print "5"
     quiz_for_student = read_quiz(banco,list_points)
- 
+    print "6"
+
     for i in quiz_for_student:
-       
+
         for j in i:
             if j['cell_type']=="markdown":
                 cells.append([j['source'][0],"markdown"])
-            
+
             if j['cell_type']=="code":
                 if len(j['source']) != 0:
                     code_lines = j['source']
-                    
+
                     z = ""
-                    for k in code_lines:                        
-                        z = z + k            
+                    for k in code_lines:
+                        z = z + k
                     cells.append([z,"code"])
-   
+    print cells
     return cells
-        
+
 if len(sys.argv)<2:
     sys.exit(0)
 
@@ -497,15 +528,39 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     template = gc.create("MOOCGRADER CONFIGS")
 
     print "Creating moocgrader"
-    template.add_worksheet('config', 1, 1)
+    template.add_worksheet('config', 1, 6)
+    template.get_worksheet(0).update_acell('A1', "DEADLINE")
+    template.get_worksheet(0).update_acell('B1', "DATE")
+    template.get_worksheet(0).update_acell('C1', "COUNT PROBLEMS")
+    template.get_worksheet(0).update_acell('D1', "PENALTY")
+    template.get_worksheet(0).update_acell('E1', "MAXGRADE")
     print "Creating worksheet config"
     template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
     print "Sharing moocgrader"
     print "Adding Deadlines"
+    #print "NO OLVIDAR DESCOMENTAR EL CREATE EL ADD Y EL SHARE Y LOS PRINT"
     add_deadline()
+    #print "END"
     print "OK"
     print "https://docs.google.com/spreadsheets/d/"+template.id
-      
+
+# GENERAR_BANCO_PY
+# Crea el archivo banco.py con todos los ejercicios.
+if sys.argv[1]=="GENERAR_BANCO_PY":
+    generar_banco_py(sys.argv[2])
+
+# RENDER_QUIZ
+# se encarga de exraer los ejercicios de banco.py para el estudiante dependiendo de su correo electronico.
+if sys.argv[1]=="RENDER_QUIZ":
+
+    is_authorized, email = check_user_auth()
+
+    if not is_authorized:
+        print "user not authenticsated, please run the first cell of this notebook to authenticate"
+        sys.exit(0)
+
+    f = open("quiz_for_student.py","w")
+    f.write("l = "+str(render_quiz(email)))
 
 if sys.argv[1]=="CHECK_SOLUTION":
 
@@ -513,30 +568,7 @@ if sys.argv[1]=="CHECK_SOLUTION":
    result = check_solution(pid)
    comentario = check_result(result,pid)
    print "evaluation result", result, comentario
-    
-    
 
-# GENERAR_BANCO_PY
-# Crea el archivo banco.py con todos los ejercicios.
-if sys.argv[1]=="GENERAR_BANCO_PY":
-    generar_banco_py()
-
-# RENDER_QUIZ
-# se encarga de exraer los ejercicios de banco.py para el estudiante dependiendo de su correo electronico.
-if sys.argv[1]=="RENDER_QUIZ":
-    
-    is_authorized, email = check_user_auth()
-
-    if not is_authorized:
-        print "user not authenticsated, please run the first cell of this notebook to authenticate"
-        sys.exit(0)
-    
-    f = open("quiz_for_student.py","w")    
-    f.write("l = "+str(render_quiz(email)))
-   
-    
-    
-    
 if sys.argv[1]=="SUBMIT_SOLUTION":
 
    pid = sys.argv[2]
