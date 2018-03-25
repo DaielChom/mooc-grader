@@ -6,6 +6,8 @@ mkdir -p $QUIZDIR/utils/graders
 mkdir -p $QUIZDIR/utils/student_function
 mkdir -p $QUIZDIR/img
 mkdir -p $QUIZDIR/data
+cp ./data/* $QUIZDIR/data
+cp ./img/* $QUIZDIR/img
 cp ./*.ipynb $QUIZDIR
 cp ./utils/*.epy $QUIZDIR/utils
 cp ./utils/runepy $QUIZDIR/utils
