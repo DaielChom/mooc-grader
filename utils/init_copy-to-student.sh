@@ -1,4 +1,3 @@
-
 export STUDENTDIR="./student/##COUSERNAME##"
 echo "Using student dir at $STUDENTDIR"
 rm -rf $STUDENTDIR/utils

@@ -70,7 +70,7 @@ def google_drive_create_file(gc, fname, email):
 
 def google_drive_create_file_grade_final(gc, sname):
     grade = gc.create(sname)
-    grade.add_worksheet('grades', 100, 100)
+    grade.add_worksheet('grades', 1, 1)
     grade.share('##EMAIL##', perm_type='user', role='writer')
 
 def check_solution (pid):
@@ -123,8 +123,10 @@ def get_config(gc, course_id, problem_set_id, configvar, debug=False):
         return None
 
 def check_deadline_expired(gc, course_id, problemset_id, deadline_id="harddeadline"):
+
     now = get_localized_inet_time()
     deadline_str = get_config(gc, course_id, problemset_id, deadline_id)
+
     if deadline_str is None:
         return False
     deadline = str2datetime(deadline_str)
@@ -153,10 +155,44 @@ def get_course_sheets(service=None):
     return sheet_names
 
 def get_coursepart_grades(pdefs, submissions_df):
+
     r = pd.DataFrame([], columns=submissions_df.columns)
 
+    app_email, gc, service = get_RLXMOOC_credentials()
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+
     for pset in pdefs.keys():
-        for pid in pdefs[pset]["problems"]:
+
+        problems_ids = []
+        deadslines = []
+        penalty = ""
+        dname = ""
+
+        if pdefs[pset] == "dynamic":
+            for i in submissions_df['problem_id'].get_values():
+                if pset in i:
+                    problems_ids.append(i)
+
+            row = 0
+
+            for j,i in enumerate(config.col_values(1)):
+                if pset in i:
+
+                    dname = i.split("::")[2]
+
+                    row = j
+
+
+            deadslines.append(config.col_values(2)[row])
+            penalty = config.col_values(4)[row]
+
+
+        else:
+            problems_ids = pdefs[pset]["problems"]
+            deadslines = pdefs[pset]["deadlines"]
+
+
+        for pid in problems_ids:
 
             dfp = submissions_df[submissions_df.problem_id==pid]
 
@@ -166,16 +202,16 @@ def get_coursepart_grades(pdefs, submissions_df):
 
                 dfpgrade = dfpmax['result'].copy()
 
-                for strdate in pdefs[pset]["deadlines"]:
+                for strdate in deadslines:
                     date = str2datetime(strdate)
-                    penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
-                    dname   =  pdefs[pset]["deadlines"][strdate]["name"]
+                    if pdefs[pset] != "dynamic":
+                        penalty =  pdefs[pset]["deadlines"][strdate]["penalty"]
+                        dname   =  pdefs[pset]["deadlines"][strdate]["name"]
 
                     if dfpmax['date'][0] > date:
                         grade_penalty = float(dfpgrade.get_value(dfpgrade.index[0]))-float(dfpgrade.get_value(dfpgrade.index[0]))*float(penalty)
                         dfpgrade.set_value(0,grade_penalty,2)
                         dfpmax.set_value(dfpgrade.index[0],'comment',dname)
-
 
                 dfpmax['grade'] = dfpgrade
 
@@ -187,8 +223,6 @@ def get_coursepart_grades(pdefs, submissions_df):
                 r = dfpmax
             else:
                 r = r.append(dfpmax)
-
-
     return r
 
 def get_submissions(sheet_name, gc):
@@ -214,9 +248,17 @@ def get_submissions(sheet_name, gc):
     return df
 
 def get_coursepart_summary(pdefs, grades):
+
     r = []
     for pset in pdefs.keys():
-        pids = pdefs[pset]["problems"]
+        pids = []
+
+        if pdefs[pset] == "dynamic":
+            pids = grades["problem_id"].get_values()
+
+        else:
+            pids = pdefs[pset]["problems"]
+
         psetgrades = []
         for pid in pids:
             pgrade = grades[grades.problem_id==pid].grade
@@ -297,6 +339,7 @@ def compute_grades(sheet_name, gc=None):
     return grades_summary
 
 def save_class_grades(class_grades, gc=None):
+
     if gc is None:
         app_email, gc, service = get_RLXMOOC_credentials()
 
@@ -305,7 +348,12 @@ def save_class_grades(class_grades, gc=None):
     if not google_drive_file_exists(service, sname):
          google_drive_create_file_grade_final(gc, sname)
          print "The grade sheet for",course_id,"was created, check your email"
-         sys.stdout.flush()
+
+    grades = gc.open(course['name']+"-grades").worksheet("grades")
+    grades.append_row(class_grades.columns)
+    row = class_grades.iterrows()
+    for i in row:
+        grades.append_row(i[1].get_values())
 
 def compute_all_grades():
     app_email, gc, service = get_RLXMOOC_credentials()
@@ -357,29 +405,65 @@ def check_result(result,pid):
     comentario = ""
     maxgrade = 0
 
-    ids = [ i for i in course.keys() if i!='name']
-    for i in ids:
-        if(pid[:-2] in course[i]['defs'].keys()):
-            maxgrade = course[i]['defs'][pid[:-2]]['maxgrade']
+    if "QZ" in pid:
+        row = 0
+        app_email, gc, service = get_RLXMOOC_credentials()
+        config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+        cols = config.col_values(1)
+
+        for j,i in enumerate(cols):
+            if pid[:-2] in i:
+                row = j
+
+        maxgrade = config.col_values(5)[row]
+
+    else:
+        ids = [ i for i in course.keys() if i!='name']
+        for i in ids:
+            if(pid[:-2] in course[i]['defs'].keys()):
+                maxgrade = course[i]['defs'][pid[:-2]]['maxgrade']
 
     if (result<0 or result>maxgrade):
         comentario = "NOTA FUERA DEL RANGO"
     return comentario
 
 def add_deadline():
+    """Agrega los deadlines del diccionario course al archivo MOOCGRADER CONFIGS"""
+
     deadlines ={}
     l = {}
     for i in course:
         if i!="name":
             for j in course[i]['defs']:
-                deads = course[i]['defs'][j]['deadlines'].keys()
-                for k in deads:
-                    l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
-                deadlines.update({j:l})
+                if course[i]['defs'][j] != "dynamic":
+                    deads = course[i]['defs'][j]['deadlines'].keys()
+                    for k in deads:
+                        l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
+                    deadlines.update({j:l})
     line = []
     for i in deadlines:
         for j in deadlines[i]:
             line.append((course_id+"::"+i+"::"+deadlines[i][j],j))
+
+    add_deadline_moocconfig(line)
+
+def prepare_deadline_quiz(paramquiz, pid):
+
+    line = []
+    deads = []
+
+    for i in paramquiz['deadlines']:
+        deads.append(course['name']+"::"+pid+"::"+paramquiz['deadlines'][i]['name'],)
+        deads.append(i,)
+        deads.append(paramquiz['problems'],)
+        deads.append(paramquiz['deadlines'][i]['penalty'],)
+        deads.append(paramquiz['maxgrade'],)
+        line.append(deads)
+
+    add_deadline_moocconfig(line)
+
+def add_deadline_moocconfig(line):
+    """Agrega una lista con los deadlines y otros parametros a la hoja de calculo MOOCGRADER CONFIG """
 
     for i in line:
         hl = i[0]
@@ -387,16 +471,17 @@ def add_deadline():
 
         app_email, gc, service = get_RLXMOOC_credentials()
         config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
-        config. append_row([hl,sl.replace("_"," ")])
-        print "OK deadline"
 
-# generar_banco_py
-# Se encarga de generar un archivo banco.py
-# a base del archivo banco.ipynb
-# dicho archivo se encripta en esta misma funcion
-# archivo que contiene las preguntas para ser
-# renderizadas en los dinamyc quiz
-def generar_banco_py():
+        if len(i) > 2:
+            config.append_row([hl,sl.replace("_"," "),i[2],i[3],i[4]])
+        else:
+            config.append_row([hl,sl.replace("_"," ")])
+        print " ... Deadline Added"
+
+def generar_banco_py(pid):
+    """Crea un achivo banco.py con todos los ejercicios de un quiz y la identificacion
+    del quiz"""
+
     PATH = "./banco"
 
     json_notebook = json.load(open(PATH+'.ipynb'))
@@ -423,40 +508,52 @@ def generar_banco_py():
 
     archivo_py = open(PATH+".py","w")
     archivo_py.write("quices = "+ str(quices))
+    archivo_py.write("\n")
+    archivo_py.write("pid = \""+pid+"\"")
     archivo_py.close()
 
-# read_banco
-# Se encarga de leer el archivo banco como un JSON y
-# extrae los ejercicios del mismo teniendo en cuenta
-# las etiqueta INICIO y FIN
 def read_banco():
+    """Extrae la lista de ejercicios presente en el archivo banco.py"""
     import banco as bc
-    return bc.quices
+    return bc.quices, bc.pid
 
 def read_quiz(banco, list_points):
-  for i in list_points:
-    yield banco[i]
+    """Retorna aun lista de ejercicios del banco, a corde a list_points"""
+    for i in list_points:
+        yield banco[i]
 
-def generate_seed(seed,len_banco):
+def generate_seed(seed,len_banco, pid):
+    """Genera una lista de numeros pseudoaleatoria"""
 
-  list_points = []
-  for i in range(4):
-      seed = int((997*(seed)+3)%len_banco)
-      list_points.append(seed)
-  return list_points
+    app_email, gc, service = get_RLXMOOC_credentials()
+    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    cols = config.col_values(1)
+    for j,i in enumerate(cols):
+        if pid in i:
+            row = j
 
-def email_to_seed(email):
+    count_quiz = config.col_values(3)[row]
+
+    list_points = []
+    for i in range(int(count_quiz)):
+        seed = int((997*(seed)+3)%len_banco)
+        list_points.append(seed)
+    return list_points
+
+def email_to_seed(email, pid):
   seed = ""
-  for i in email:
+  for i in email+pid:
     seed = seed + str(ord(i))
   return int(seed)
 
 def render_quiz(email):
+    """ Returna una lista con los ejercicios prpuestos para un estudiante
+    en especifco teniendo en cuenta la lista generada aleatoriamente"""
 
     cells = []
-    banco = read_banco()
-    seed = email_to_seed(email)
-    list_points = generate_seed(seed,len(banco))
+    banco, pid = read_banco()
+    seed = email_to_seed(email, pid)
+    list_points = generate_seed(seed,len(banco), pid)
     quiz_for_student = read_quiz(banco,list_points)
 
     for i in quiz_for_student:
@@ -486,9 +583,14 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
     template = gc.create("MOOCGRADER CONFIGS")
 
     print "Creating moocgrader"
-    template.add_worksheet('config', 1, 1)
+    template.add_worksheet('config', 1, 6)
+    template.get_worksheet(0).update_acell('A1', "DEADLINE")
+    template.get_worksheet(0).update_acell('B1', "DATE")
+    template.get_worksheet(0).update_acell('C1', "COUNT PROBLEMS")
+    template.get_worksheet(0).update_acell('D1', "PENALTY")
+    template.get_worksheet(0).update_acell('E1', "MAXGRADE")
     print "Creating worksheet config"
-    template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
+    template.share('##EMAIL##', perm_type='user', role='writer')
     print "Sharing moocgrader"
     print "Adding Deadlines"
     add_deadline()
@@ -498,7 +600,7 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
 # GENERAR_BANCO_PY
 # Crea el archivo banco.py con todos los ejercicios.
 if sys.argv[1]=="GENERAR_BANCO_PY":
-    generar_banco_py()
+    generar_banco_py(sys.argv[2])
 
 # RENDER_QUIZ
 # se encarga de exraer los ejercicios de banco.py para el estudiante dependiendo de su correo electronico.
@@ -555,6 +657,7 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
 
    hard_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "harddeadline")
    soft_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "softdeadline")
+   final_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "finaldeadline")
 
    gf = gc.open(fname)
 
@@ -572,12 +675,19 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    wks.update_cell(i+1,3,result)
    wks.update_cell(i+1,5,src)
    wks.update_cell(i+1,6,comentario)
+
    if hard_deadline_expired:
        wks.update_cell(i+1,4, "HARD DEADLINE EXPIRED")
        print "SUBMITTED AFTER HARD DEADLINE"
+
    elif soft_deadline_expired:
        wks.update_cell(i+1,4, "DEADLINE EXPIRED")
        print "SUBMITTED AFTER DEADLINE"
+
+   elif final_deadline_expired:
+       wks.update_cell(i+1,4, "DEADLINE EXPIRED")
+       print "SUBMITTED AFTER DEADLINE"
+
    print "your submissions sheet is https://docs.google.com/spreadsheets/d/"+gf.id
    print "----"
    print "evaluation result", result, ", submission registered"
