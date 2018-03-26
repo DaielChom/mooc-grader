@@ -20,6 +20,7 @@ Se puede clonar el repositorio o descargar el ZIP del mismo, independientemente 
 	(venv) ~/proyecto$ git clone https://github.com/DaielChom/mooc-grader.git  
 	(venv) ~/proyecto$ cd mooc-grader
 	(venv) ~/proyecto$ sudo apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev
+	(venv) ~/proyecto$ sudo apt-get install libcairo2-dev
 	(venv) ~/proyecto$ apt-get install lib32stdc++6	
 	(venv) mooc-grader$ pip install -r dependencias.txt
 	(venv) mooc-grader$ jupyter notebook
