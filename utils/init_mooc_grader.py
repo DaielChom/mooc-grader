@@ -482,7 +482,7 @@ def generar_banco_py(pid):
     """Crea un achivo banco.py con todos los ejercicios de un quiz y la identificacion
     del quiz"""
 
-    PATH = "./banco"
+    PATH = "./instrucciones_quices_dinamicos"
 
     json_notebook = json.load(open(PATH+'.ipynb'))
 
@@ -506,7 +506,7 @@ def generar_banco_py(pid):
                 quices.append(quiz)
                 quiz = []
 
-    archivo_py = open(PATH+".py","w")
+    archivo_py = open("banco.py","w")
     archivo_py.write("quices = "+ str(quices))
     archivo_py.write("\n")
     archivo_py.write("pid = \""+pid+"\"")
@@ -528,10 +528,11 @@ def generate_seed(seed,len_banco, pid):
     app_email, gc, service = get_RLXMOOC_credentials()
     config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
     cols = config.col_values(1)
+    row = 0
     for j,i in enumerate(cols):
         if pid in i:
             row = j
-
+                
     count_quiz = config.col_values(3)[row]
 
     list_points = []
