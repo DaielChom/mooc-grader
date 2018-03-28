@@ -7,8 +7,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 import subprocess
 import json
 
-course = {'QUIZ': {'defs': {'QZ1': 'dynamic'}, 'weight': 0.5}, 'name': '2017BG', 'PROBLEM_SETS': {'defs': {'PS1': {'maxgrade': 5.0, 'problems': ['PS1_1', 'PS1_2'], 'deadlines': {'2018/10/18 00:00:00 [-0500]': {'penalty': 0.3, 'name': 'softdeadline'}, '2018/10/19 00:00:00 [-0500]': {'penalty': 1, 'name': 'harddeadline'}}}}, 'weight': 0.5}}
-course_id   = course['name']
+course_name = "2017BG"
 
 def encryptDecrypt(input):
         key = ['A', 'M', 'B', 'N','O','F','E','A','E','E'] #Can be any chars, and any size array
@@ -107,12 +106,12 @@ def str2datetime(s):
     d1 = pytz.FixedOffset(offset).localize(d1)
     return d1
 
-def get_config(gc, course_id, problem_set_id, configvar, debug=False):
+def get_config(gc, course_name, problem_set_id, configvar, debug=False):
     try:
-        name = course_id+"::"+problem_set_id+"::"+configvar
+        name = course_name+"::"+problem_set_id+"::"+configvar
         if debug:
             print "looking for", name
-        w = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+        w = gc.open(course_name+"MOOCGRADER CONFIGS").worksheet("config")
         c = w.find(name)
         v = w.cell(c.row, c.col+1).value
         return v
@@ -122,10 +121,10 @@ def get_config(gc, course_id, problem_set_id, configvar, debug=False):
             print "not found"
         return None
 
-def check_deadline_expired(gc, course_id, problemset_id, deadline_id="harddeadline"):
+def check_deadline_expired(gc, course_name, problemset_id, deadline_id="harddeadline"):
 
     now = get_localized_inet_time()
-    deadline_str = get_config(gc, course_id, problemset_id, deadline_id)
+    deadline_str = get_config(gc, course_name, problemset_id, deadline_id)
 
     if deadline_str is None:
         return False
@@ -159,7 +158,7 @@ def get_coursepart_grades(pdefs, submissions_df):
     r = pd.DataFrame([], columns=submissions_df.columns)
 
     app_email, gc, service = get_RLXMOOC_credentials()
-    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    config = gc.open(course_name+"MOOCGRADER CONFIGS").worksheet("config")
 
     for pset in pdefs.keys():
 
@@ -347,7 +346,7 @@ def save_class_grades(class_grades, gc=None):
 
     if not google_drive_file_exists(service, sname):
          google_drive_create_file_grade_final(gc, sname)
-         print "The grade sheet for",course_id,"was created, check your email"
+         print "The grade sheet for",course_name,"was created, check your email"
 
     grades = gc.open(course['name']+"-grades").worksheet("grades")
     grades.append_row(class_grades.columns)
@@ -373,10 +372,10 @@ def compute_all_grades():
     return class_grades
 
 def fix_sharing():
-    print "Course is", course_id
+    print "Course is", course_name
     app_email, gc, service = get_RLXMOOC_credentials()
     files = retrieve_all_files(service)
-    sheets = [f for f in files["files"] if f["name"].startswith(course_id)]
+    sheets = [f for f in files["files"] if f["name"].startswith(course_name)]
 
     rlxmooc_permision = {
         'type': 'user',
@@ -385,9 +384,9 @@ def fix_sharing():
     }
 
     for s in sheets:
-        if s["name"].startswith(course_id):
+        if s["name"].startswith(course_name):
             # user mail is in sheet name
-            usermail = s["name"][len(course_id)+1:]
+            usermail = s["name"][len(course_name)+1:]
 
             user_permision = {
                 'type': 'user',
@@ -408,7 +407,7 @@ def check_result(result,pid):
     if "QZ" in pid:
         row = 0
         app_email, gc, service = get_RLXMOOC_credentials()
-        config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+        config = gc.open(course_name+"MOOCGRADER CONFIGS").worksheet("config")
         cols = config.col_values(1)
 
         for j,i in enumerate(cols):
@@ -427,56 +426,56 @@ def check_result(result,pid):
         comentario = "NOTA FUERA DEL RANGO"
     return comentario
 
-def add_deadline():
-    """Agrega los deadlines del diccionario course al archivo MOOCGRADER CONFIGS"""
+#def add_deadline():
+#    """Agrega los deadlines del diccionario course al archivo MOOCGRADER CONFIGS"""
+#
+#    deadlines ={}
+#    l = {}
+#    for i in course:
+#        if i!="name":
+#            for j in course[i]['defs']:
+#                if course[i]['defs'][j] != "dynamic":
+#                    deads = course[i]['defs'][j]['deadlines'].keys()
+#                    for k in deads:
+#                        l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
+#                    deadlines.update({j:l})
+#    line = []
+#    for i in deadlines:
+#        for j in deadlines[i]:
+#            line.append((course_name+"::"+i+"::"+deadlines[i][j],j))
 
-    deadlines ={}
-    l = {}
-    for i in course:
-        if i!="name":
-            for j in course[i]['defs']:
-                if course[i]['defs'][j] != "dynamic":
-                    deads = course[i]['defs'][j]['deadlines'].keys()
-                    for k in deads:
-                        l.update({k:course[i]['defs'][j]['deadlines'][k]['name']})
-                    deadlines.update({j:l})
-    line = []
-    for i in deadlines:
-        for j in deadlines[i]:
-            line.append((course_id+"::"+i+"::"+deadlines[i][j],j))
+#    add_deadline_moocconfig(line)
 
-    add_deadline_moocconfig(line)
+#def prepare_deadline_quiz(paramquiz, pid):
+#
+#    line = []
+#    deads = []
+#
+#    for i in paramquiz['deadlines']:
+#        deads.append(course['name']+"::"+pid+"::"+paramquiz['deadlines'][i]['name'],)
+#        deads.append(i,)
+#        deads.append(paramquiz['problems'],)
+#        deads.append(paramquiz['deadlines'][i]['penalty'],)
+#        deads.append(paramquiz['maxgrade'],)
+#        line.append(deads)
+#
+#    add_deadline_moocconfig(line)
 
-def prepare_deadline_quiz(paramquiz, pid):
-
-    line = []
-    deads = []
-
-    for i in paramquiz['deadlines']:
-        deads.append(course['name']+"::"+pid+"::"+paramquiz['deadlines'][i]['name'],)
-        deads.append(i,)
-        deads.append(paramquiz['problems'],)
-        deads.append(paramquiz['deadlines'][i]['penalty'],)
-        deads.append(paramquiz['maxgrade'],)
-        line.append(deads)
-
-    add_deadline_moocconfig(line)
-
-def add_deadline_moocconfig(line):
-    """Agrega una lista con los deadlines y otros parametros a la hoja de calculo MOOCGRADER CONFIG """
-
-    for i in line:
-        hl = i[0]
-        sl = i[1].replace(" ","_")
-
-        app_email, gc, service = get_RLXMOOC_credentials()
-        config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
-
-        if len(i) > 2:
-            config.append_row([hl,sl.replace("_"," "),i[2],i[3],i[4]])
-        else:
-            config.append_row([hl,sl.replace("_"," ")])
-        print " ... Deadline Added"
+#def add_deadline_moocconfig(line):
+#    """Agrega una lista con los deadlines y otros parametros a la hoja de calculo MOOCGRADER CONFIG """
+#
+#    for i in line:
+#        hl = i[0]
+#        sl = i[1].replace(" ","_")
+#
+#        app_email, gc, service = get_RLXMOOC_credentials()
+#        config = gc.open(course_name+"MOOCGRADER CONFIGS").worksheet("config")
+#
+#        if len(i) > 2:
+#            config.append_row([hl,sl.replace("_"," "),i[2],i[3],i[4]])
+#        else:
+#            config.append_row([hl,sl.replace("_"," ")])
+#        print " ... Deadline Added"
 
 def generar_banco_py(pid):
     """Crea un achivo banco.py con todos los ejercicios de un quiz y la identificacion
@@ -526,15 +525,12 @@ def generate_seed(seed,len_banco, pid):
     """Genera una lista de numeros pseudoaleatoria"""
 
     app_email, gc, service = get_RLXMOOC_credentials()
-    config = gc.open("MOOCGRADER CONFIGS").worksheet("config")
+    config = gc.open(course_name+"MOOCGRADER CONFIGS").worksheet("config")
     cols = config.col_values(1)
     row = 0
-
     for j,i in enumerate(cols):
         if pid in i:
             row = j
-
-
 
     count_quiz = config.col_values(3)[row]
 
@@ -582,24 +578,40 @@ if len(sys.argv)<2:
 
 if sys.argv[1]=="CREATE_MOOCGRADER":
 
+    fname = course_name+" - MOOCGRADER CONFIGS"
+
     print "Conecting.."
     app_email, gc, service = get_RLXMOOC_credentials()
-    template = gc.create("MOOCGRADER CONFIGS")
 
-    print "Creating moocgrader"
-    template.add_worksheet('config', 1, 6)
-    template.get_worksheet(0).update_acell('A1', "DEADLINE")
-    template.get_worksheet(0).update_acell('B1', "DATE")
-    template.get_worksheet(0).update_acell('C1', "COUNT PROBLEMS")
-    template.get_worksheet(0).update_acell('D1', "PENALTY")
-    template.get_worksheet(0).update_acell('E1', "MAXGRADE")
-    print "Creating worksheet config"
-    template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
-    print "Sharing moocgrader"
-    print "Adding Deadlines"
-    add_deadline()
-    print "OK"
-    print "https://docs.google.com/spreadsheets/d/"+template.id
+    if google_drive_file_exists(service, fname):
+        template = gc.open(fname)
+        print ".. The file "+ fname+" already exists .."
+        print "https://docs.google.com/spreadsheets/d/"+template.id
+
+    else:
+        template = gc.create(fname)
+
+        print "Creating "+fname+" ..."
+        template.add_worksheet('config', 100, 10)
+        template.get_worksheet(0).update_acell('A1', "BLOCK NAME")
+        template.get_worksheet(0).update_acell('B1', "BLOCK WEIGHT")
+        template.get_worksheet(0).update_acell('C1', "SECTION NAME")
+        template.get_worksheet(0).update_acell('D1', "SECTION COUNT")
+        template.get_worksheet(0).update_acell('E1', "SECTION MAXGRADE")
+        template.get_worksheet(0).update_acell('F1', "SECTION TYPE")
+        template.get_worksheet(0).update_acell('G1', "SECTION HARDDEADLINE")
+        template.get_worksheet(0).update_acell('H1', "SECTION HARDDEADLINE PENALTY")
+        template.get_worksheet(0).update_acell('I1', "SECTION SOFTDEADLINE")
+        template.get_worksheet(0).update_acell('J1', "SECTION SOFTDEADLINE PENALTY")
+
+
+        print "Creating worksheet config"+" ..."
+        template.share('pruebadaielchom@gmail.com', perm_type='user', role='writer')
+        print "Sharing "+fname+"..."
+
+        #add_deadline()
+        print "OK.. "+fname+" created"
+        print "https://docs.google.com/spreadsheets/d/"+template.id
 
 # GENERAR_BANCO_PY
 # Crea el archivo banco.py con todos los ejercicios.
@@ -652,16 +664,16 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
 
    app_email, gc, service = get_RLXMOOC_credentials()
 
-   fname = course_id+'-'+email
+   fname = course_name+'-'+email
 
    if not google_drive_file_exists(service, fname):
       google_drive_create_file(gc, fname, email)
-      print "your personal submissions sheet for",course_id,"was created, check your email"
+      print "your personal submissions sheet for",course_name,"was created, check your email"
       sys.stdout.flush()
 
-   hard_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "harddeadline")
-   soft_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "softdeadline")
-   final_deadline_expired = check_deadline_expired(gc, course_id, problemset_id, "finaldeadline")
+   hard_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "harddeadline")
+   soft_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "softdeadline")
+   final_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "finaldeadline")
 
    gf = gc.open(fname)
 

@@ -7,8 +7,7 @@ from oauth2client.client import SignedJwtAssertionCredentials
 import subprocess
 import json
 
-course = ##COURSE##
-course_id   = course['name']
+course_name = "##COURSE##"
 
 def encryptDecrypt(input):
         key = ##KEYPY## #Can be any chars, and any size array
@@ -532,7 +531,7 @@ def generate_seed(seed,len_banco, pid):
     for j,i in enumerate(cols):
         if pid in i:
             row = j
-                
+
     count_quiz = config.col_values(3)[row]
 
     list_points = []
