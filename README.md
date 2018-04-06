@@ -9,21 +9,17 @@
 ### Instalación
 Se puede clonar el repositorio o descargar el ZIP del mismo, independientemente de la metodologia que use se recomeinda crear un entorno virtual para el uso del framework.
 
-	# Configuracion entorno virtual, se requiere de `virtualenv`
+
 
 	~$ mkdir proyecto && cd proyecto
-	~/proyecto$ virtualenv venv
-	~/proyecto$ source venv/bin/active
 
-	# En este caso se opta por clonar el repositorio
-
-	(venv) ~/proyecto$ git clone https://github.com/DaielChom/mooc-grader.git  
-	(venv) ~/proyecto$ cd mooc-grader
-	(venv) ~/proyecto$ sudo apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev
-	(venv) ~/proyecto$ apt-get install lib32stdc++6	
-	(venv) ~/proyecto$ sudo apt-get install libcairo2-dev
-	(venv) mooc-grader$ pip install -r dependencias.txt
-	(venv) mooc-grader$ jupyter notebook
+	~/proyecto$ git clone https://github.com/DaielChom/mooc-grader.git  
+	~/proyecto$ cd mooc-grader
+	~/proyecto$ sudo apt-get install python-pip python-dev libffi-dev libssl-dev libxml2-dev libxslt1-dev libjpeg8-dev zlib1g-dev
+	~/proyecto$ sudo apt-get install lib32stdc++6
+	~/proyecto$ sudo apt-get install libcairo2-dev
+	~/proyecto/mooc-grader$ pip install -r dependencias.txt
+	~/proyecto/mooc-grader$ jupyter notebook
 
 	# Abrir el notebook instrucciones para empezar.
 
@@ -31,4 +27,6 @@ Se puede clonar el repositorio o descargar el ZIP del mismo, independientemente 
 Para inicar la elaboración del `curso`, es decir la implementacion del `framework`, se debe elaborar la guia de [instrucciones](./instrucciones.ipynb).
 
 ### Autores
-`mooc-grader` fue incialmente desarrollado por [@rramosp](https://github.com/rramosp)
+`mooc-grader` exista gracias a:
+* [@rramosp](https://sites.google.com/site/rulixrp/)
+* [@famarcar](https://sites.google.com/site/fmartinezc21/)
