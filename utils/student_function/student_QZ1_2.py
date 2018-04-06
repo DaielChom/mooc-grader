@@ -1,3 +1,0 @@
-def resta(a,b):
-    resta = ...
-    return resta
