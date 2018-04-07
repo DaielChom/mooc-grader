@@ -9,6 +9,7 @@ def new_cell(texto,tipo_celda):
     display(Javascript("""
       var mark = IPython.notebook.insert_cell_above('markdown')
       mark.set_text("{0}")
+      mark.execute()
     """.format(texto.encode('utf-8'))))
  
   if tipo_celda == "code":
