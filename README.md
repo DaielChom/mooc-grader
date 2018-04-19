@@ -3,6 +3,14 @@
 ### Descripcion
 `Mooc-grader` es un `framework` diseñado para la implementación de `notebooks` en la elaboracion y calificacion de talleres (`PROBLEMSET`) y evaluaciones (`QUIZZES`) de un curso. La calificación se hace de manera automatica mediante el uso de calificadores o `graders` registrando las notas en una hoja de calculo de Drive compartida entre el tutor y el estudiante.
 
+`Mooc-grader` cuenta con la siguiente arquitectura
+
+<center>
+![arquitectura](./img/arquitectura_moocgrader.svg)
+</center>
+
+
+
 ### Dependencias
 `mooc-grader` es un `framework` desarrollado en `python 2.7` y depende de las librerías documentadas en el archivo [dependencias.txt](./dependencias.txt)
 
