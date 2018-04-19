@@ -6,6 +6,7 @@
 `Mooc-grader` cuenta con la siguiente arquitectura
 
 <center>
+
 ![arquitectura](./img/arquitectura_moocgrader.svg)
 </center>
 
