@@ -5,12 +5,7 @@
 
 `Mooc-grader` cuenta con la siguiente arquitectura
 
-<center>
-
 ![arquitectura](./img/arquitectura_moocgrader.svg)
-</center>
-
-
 
 ### Dependencias
 `mooc-grader` es un `framework` desarrollado en `python 2.7` y depende de las librerías documentadas en el archivo [dependencias.txt](./dependencias.txt)
