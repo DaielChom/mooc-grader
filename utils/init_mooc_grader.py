@@ -586,7 +586,7 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
         print "Creating worksheet config"+"..."
         template.share('##EMAIL##', perm_type='user', role='writer')
         template = gc.open(fname)
-		template.del_worksheet(template.worksheet('Sheet1'))
+        template.del_worksheet(template.worksheet('Sheet1'))
         print "Sharing "+fname+"..."
         print "OK.. "+fname+" created"
         print "https://docs.google.com/spreadsheets/d/"+template.id
