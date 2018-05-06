@@ -64,6 +64,8 @@ def google_drive_create_file(gc, fname, email):
     template.get_worksheet(0).update_acell('C1', "RESULT")
     template.get_worksheet(0).update_acell('D1', "REMARKS")
     template.get_worksheet(0).update_acell('E1', "CODE")
+    template = gc.open(fname)
+    template.del_worksheet(template.worksheet('Sheet1'))
     template.share('##EMAIL##', perm_type='user', role='writer')
     template.share(email, perm_type='user', role='reader')
 
@@ -190,7 +192,7 @@ def get_coursepart_grades(sheet_name, for_remove, submissions_df):
             deadslines.append(remove_from_list(get_colums_moocgrader(7), for_remove)[j])
             penalty = remove_from_list(get_colums_moocgrader(8), for_remove)[j]
 
-        elif type_dynamic[j] == "not dynamic":
+        elif type_dynamic[j] == "static":
 
             problems_ids = [pset+"_"+str(i+1) for i in range(int(count_section[j]))]
             deadslines.append(remove_from_list(get_colums_moocgrader(7), for_remove)[j])
@@ -211,7 +213,7 @@ def get_coursepart_grades(sheet_name, for_remove, submissions_df):
 
                     date = str2datetime(strdate)
 
-                    if type_dynamic[j] == "not dynamic":
+                    if type_dynamic[j] == "static":
                         penalty = remove_from_list(get_colums_moocgrader(8+k*2), for_remove)[j]
 
                     if dfpmax['date'][0] > date:
@@ -272,7 +274,7 @@ def get_coursepart_summary(sheet_name, for_remove, grades):
             list_count = generate_seed( email_to_seed(sheet_name.split("-")[1], pset),int(len_banco[j].split("-")[1]), pset)
             pids = [pset+"_"+str(i+1) for i in list_count]
 
-        elif type_dynamic[j] == "not dynamic":
+        elif type_dynamic[j] == "static":
             pids = [pset+"_"+str(i+1) for i in range(int(count_section[j]))]
 
         psetgrades = []
@@ -583,7 +585,8 @@ if sys.argv[1]=="CREATE_MOOCGRADER":
 
         print "Creating worksheet config"+"..."
         template.share('##EMAIL##', perm_type='user', role='writer')
-
+        template = gc.open(fname)
+		template.del_worksheet(template.worksheet('Sheet1'))
         print "Sharing "+fname+"..."
         print "OK.. "+fname+" created"
         print "https://docs.google.com/spreadsheets/d/"+template.id
@@ -651,7 +654,7 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
 
    soft_deadline_expired = False
 
-   if config.col_values(6)[row] == "not dynamic":
+   if config.col_values(6)[row] == "static":
        soft_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "softdeadline")
 
    hard_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "harddeadline")
