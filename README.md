@@ -1,4 +1,4 @@
-# Mooc-grader
+﻿# Mooc-grader
 
 ### Descripcion
 `Mooc-grader` es un `framework` diseñado para la implementación de `notebooks` en la elaboracion y calificacion de talleres (`PROBLEMSET`) y evaluaciones (`QUIZZES`) de un curso. La calificación se hace de manera automatica mediante el uso de calificadores o `graders` registrando las notas en una hoja de calculo de Drive compartida entre el tutor y el estudiante.
@@ -8,7 +8,7 @@
 ![arquitectura](./img/arquitectura_moocgrader.svg)
 
 ### Maquina virtual
-Al ser un framework orientado a estudiantes, se recomeinda usar la siguiente [maquina virtual](). La maquina presenta una configuracion que asegura el funcionamiento del framework, aparte de eso cuenta ya con una serie de herramientas listas para su uso.
+Al ser un framework orientado a estudiantes, se recomeinda usar la siguiente [maquina virtual](https://drive.google.com/open?id=1oSmoWvcs66cBiA6rQEaH74iZfYfwn9Br). La maquina presenta una configuracion que asegura el funcionamiento del framework, aparte de eso cuenta ya con una serie de herramientas listas para su uso.
 
 ### Uso
 1. Descargar y Montar la maquina virtual.
