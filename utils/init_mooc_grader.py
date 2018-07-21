@@ -159,9 +159,12 @@ def check_deadline_expired(gc, course_name, section_name, deadline_id="harddeadl
     now = get_localized_inet_time()
     deadline_str = get_config(gc, course_name, section_name, deadline_id)
 
-    if deadline_str is None:
+    try:
+        deadline = str2datetime(deadline_str)
+    except Exception as e:
+        print "no config found for section %s, allowing all submissions"%section_name
         return False
-    deadline = str2datetime(deadline_str)
+
     diff = deadline-now
     return diff.total_seconds()<0
 
@@ -626,8 +629,7 @@ if sys.argv[1]=="CHECK_SOLUTION":
 
    pid = sys.argv[2]
    result = check_solution(pid)
-   comentario = check_result(result,pid)
-   print "evaluation result", result, comentario
+   print "evaluation result", result
 
 if sys.argv[1]=="SUBMIT_SOLUTION":
 
