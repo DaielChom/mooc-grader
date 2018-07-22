@@ -75,14 +75,32 @@ def google_drive_create_file_grade_final(gc, sname):
     grade.share('##EMAIL##', perm_type='user', role='writer')
 
 def check_solution (pid):
+   import os
 
    grader_fname = "utils/graders/grader_"+pid+".grader"
    with open(grader_fname, 'r') as myfile:
         grader_src = str(encryptDecrypt(myfile.read()))
 
-   output_file = subprocess.check_output(grader_src, shell=True, executable=grader_src.split()[0][2:]).split("##")
-   print output_file[0]
-   return float(output_file[1])
+   output = subprocess.check_output(grader_src, shell=True, executable=grader_src.split()[0][2:]).rstrip()
+   output_lines = output.split("\n")
+
+   if len(output_lines)==0:
+      print "ERROR IN GRADER, empty output"
+      return 0.
+
+   if not "##" in output_lines[-1]:
+      print "ERROR IN GRADER, last line must be MESSAGE##GRADE"
+
+   print "\n".join(output_lines[:-1])
+   last_line = output_lines[-1].split("##")
+
+   print "** %s **"%last_line[0]
+
+   try:
+       return float(last_line[1])
+   except Exception as e:
+       print "ERROR IN GRADER, output %s does not contain float after ##"%last_line
+       return 0.
 
 fmt_tz   = "%Y/%m/%d %H:%M:%S [%z]"
 fmt_notz = "%Y/%m/%d %H:%M:%S"
@@ -108,10 +126,9 @@ def str2datetime(s):
     d1 = pytz.FixedOffset(offset).localize(d1)
     return d1
 
-def get_config(gc, course_name, problem_set_id, configvar, debug=False):
+def get_config(gc, course_name, section_name, configvar, debug=False):
     try:
         row = 0
-        name = problem_set_id
         index = 7 if configvar == "harddeadline" else 9
 
         if debug:
@@ -121,7 +138,7 @@ def get_config(gc, course_name, problem_set_id, configvar, debug=False):
         pids = config.col_values(3)
 
         for j,i in enumerate(pids):
-            if i == name[:-2]:
+            if i == section_name:
                 row = j
 
         v = config.col_values(index)[row]
@@ -137,14 +154,17 @@ def remove_from_list(list_to_remove, for_remove):
         list_to_remove.pop(int(i))
     return list_to_remove
 
-def check_deadline_expired(gc, course_name, problemset_id, deadline_id="harddeadline"):
+def check_deadline_expired(gc, course_name, section_name, deadline_id="harddeadline"):
 
     now = get_localized_inet_time()
-    deadline_str = get_config(gc, course_name, problemset_id, deadline_id)
+    deadline_str = get_config(gc, course_name, section_name, deadline_id)
 
-    if deadline_str is None:
+    try:
+        deadline = str2datetime(deadline_str)
+    except Exception as e:
+        print "no config found for section %s, allowing all submissions"%section_name
         return False
-    deadline = str2datetime(deadline_str)
+
     diff = deadline-now
     return diff.total_seconds()<0
 
@@ -609,8 +629,7 @@ if sys.argv[1]=="CHECK_SOLUTION":
 
    pid = sys.argv[2]
    result = check_solution(pid)
-   comentario = check_result(result,pid)
-   print "evaluation result", result, comentario
+   print "evaluation result", result
 
 if sys.argv[1]=="SUBMIT_SOLUTION":
 
@@ -648,16 +667,17 @@ if sys.argv[1]=="SUBMIT_SOLUTION":
    config = gc.open(course_name+" - MOOCGRADER CONFIGS").worksheet("config")
    row = 0
 
+   section_name = problemset_id.split("_")[0]
    for j, i in enumerate(config.col_values(3)):
-       if i == problemset_id[:-2]:
+       if i == section_name:
            row = j
 
    soft_deadline_expired = False
 
    if config.col_values(6)[row] == "static":
-       soft_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "softdeadline")
+       soft_deadline_expired = check_deadline_expired(gc, course_name, section_name, "softdeadline")
 
-   hard_deadline_expired = check_deadline_expired(gc, course_name, problemset_id, "harddeadline")
+   hard_deadline_expired = check_deadline_expired(gc, course_name, section_name, "harddeadline")
 
    gf = gc.open(fname)
 
